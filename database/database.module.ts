@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GallerySection } from 'src/gallery/gallery-section.entity';
 import { GalleryImage } from 'src/gallery/gallery-image.entity';
 import { GalleryPage } from 'src/gallery/gallery-page.entity';
+import { Route } from 'src/gallery/route-page.entity';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { GalleryPage } from 'src/gallery/gallery-page.entity';
         username: configService.get<string>('DB_USERNAME', 'root'),
         password: configService.get<string>('DB_PASSWORD', ''),
         database: configService.get<string>('DB_NAME', 'test'),
-        entities: [ GalleryPage, GalleryImage, GallerySection],
+        entities: [ GalleryPage, GalleryImage, GallerySection, Route],
         synchronize: true,
       }),
     }),
