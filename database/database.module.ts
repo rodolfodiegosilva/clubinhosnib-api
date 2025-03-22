@@ -4,7 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GallerySection } from 'src/gallery/gallery-section.entity';
 import { GalleryImage } from 'src/gallery/gallery-image.entity';
 import { GalleryPage } from 'src/gallery/gallery-page.entity';
-import { Route } from 'src/gallery/route-page.entity';
+import { Route } from 'src/route/route-page.entity';
 
 @Module({
   imports: [

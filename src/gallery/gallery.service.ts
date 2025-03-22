@@ -1,14 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { CreateGalleryPageDTO } from './dto/create-gallery.dto';
 import { GalleryPage } from './gallery-page.entity';
 import { GallerySection } from './gallery-section.entity';
 import { GalleryImage } from './gallery-image.entity';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { GalleryPageRepository } from './gallery-page.repository';
-import { GallerySectionRepository } from './gallery-section.repository';
-import { GalleryImageRepository } from './gallery-image.repository';
-import { RouteRepository } from './route-page.repository';
-import { Route } from './route-page.entity';
+import { RouteService } from 'src/route/route.service';
+import { Route } from 'src/route/route-page.entity';
 
 @Injectable()
 export class GalleryService {
@@ -17,12 +15,9 @@ export class GalleryService {
 
   constructor(
     private readonly galleryPageRepo: GalleryPageRepository,
-    private readonly sectionRepo: GallerySectionRepository,
-    private readonly imageRepo: GalleryImageRepository,
-    private readonly routeRepo: RouteRepository,
+    private readonly routeService: RouteService,
   ) {
     this.logger.debug('Inicializando S3Client...');
-
     this.s3Client = new S3Client({
       region: process.env.AWS_REGION || 'us-east-1',
       credentials: {
@@ -45,27 +40,25 @@ export class GalleryService {
     newPage.sections = [];
 
     const routePath = this.generateRoute(name);
+    await this.routeService.checkPathAvailability(routePath);
+    const createdRoute: Route = await this.routeService.createRouteForGallery(
+      routePath,
+      newPage.description,
+      newPage.id,
+    );
+    newPage.route = createdRoute;
 
-    const existingRoute = await this.routeRepo.findByPath(routePath);
-    if (existingRoute) {
-      throw new Error(`⚠️ A rota "${routePath}" já está em uso!`);
-    }
 
-    const newRoute = new Route();
-    newRoute.path = routePath;
-    newRoute.entityType = 'GalleryPage';
-    newRoute.entityId = newPage.id;
-    newPage.route = await this.routeRepo.save(newRoute);
-
-    for (let sectionItem of sections) {
+    for (const sectionItem of sections) {
       const newSection = new GallerySection();
       newSection.caption = sectionItem.caption;
       newSection.description = sectionItem.description;
       newSection.images = [];
       newSection.page = newPage;
 
-      for (let img of sectionItem.images || []) {
+      for (const img of sectionItem.images || []) {
         const newImage = new GalleryImage();
+
         if (img.isLocalFile) {
           const file = filesDict[img.fileFieldName as string];
           if (!file) continue;
@@ -81,11 +74,13 @@ export class GalleryService {
         newImage.section = newSection;
         newSection.images.push(newImage);
       }
+
       newPage.sections.push(newSection);
     }
 
     const savedPage = await this.galleryPageRepo.save(newPage);
     this.logger.debug(`✅ Página ID=${savedPage.id} criada com rota ${savedPage.route.path}.`);
+
     return savedPage;
   }
 
