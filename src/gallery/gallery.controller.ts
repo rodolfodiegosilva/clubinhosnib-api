@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Delete,
+  Patch,
   Param,
   ParseIntPipe,
   UploadedFiles,
@@ -27,39 +28,16 @@ export class GalleryController {
     @Body('galleryData') galleryData: string,
   ) {
     try {
-      this.logger.debug('=== Recebendo requisição para criar uma página de galeria ===');
+      this.logger.debug('=== Criando nova página de galeria ===');
 
-      if (!galleryData) {
-        this.logger.error('galleryData não foi enviado corretamente.');
-        throw new BadRequestException('galleryData é obrigatório.');
-      }
+      if (!galleryData) throw new BadRequestException('galleryData é obrigatório.');
 
-      this.logger.debug(`Raw galleryData recebido: ${galleryData}`);
-      this.logger.debug(`Arquivos recebidos: ${files.length}`);
-
-      let parsedData;
-      try {
-        parsedData = JSON.parse(galleryData);
-      } catch (error) {
-        this.logger.error('Erro ao fazer parse de galleryData:', error);
-        throw new BadRequestException('galleryData inválido.');
-      }
-
+      const parsedData = JSON.parse(galleryData);
       const { title, description, items } = parsedData;
-
-      if (!Array.isArray(items)) {
-        this.logger.error('items deveria ser um array.');
-        throw new BadRequestException('items deve ser um array.');
-      }
-
-      this.logger.debug(`Total de seções recebidas: ${items.length}`);
+      if (!Array.isArray(items)) throw new BadRequestException('items deve ser um array.');
 
       const filesDict: Record<string, Express.Multer.File> = {};
-      files.forEach((file) => {
-        filesDict[file.fieldname] = file;
-      });
-
-      this.logger.debug(`Arquivos mapeados: ${Object.keys(filesDict)}`);
+      files.forEach((file) => (filesDict[file.fieldname] = file));
 
       const adaptedData = {
         name: title,
@@ -67,14 +45,9 @@ export class GalleryController {
         sections: items,
       };
 
-      const savedPage = await this.galleryService.createGalleryPage(
-        adaptedData,
-        filesDict,
-      );
+      const savedPage = await this.galleryService.createGalleryPage(adaptedData, filesDict);
 
-      this.logger.debug(`Página de galeria criada: ID=${savedPage.id}, Nome="${savedPage.name}"`);
-
-      const safeResult = {
+      return {
         id: savedPage.id,
         name: savedPage.name,
         description: savedPage.description,
@@ -90,21 +63,66 @@ export class GalleryController {
           })),
         })),
       };
-
-      return safeResult;
     } catch (error) {
-      this.logger.error('Erro ao processar requisição:', error);
+      this.logger.error('Erro ao criar galeria:', error);
       throw new BadRequestException('Erro ao criar a página de galeria.');
+    }
+  }
+
+  @Patch(':id')
+  @UseInterceptors(AnyFilesInterceptor())
+  async updateGalleryPage(
+    @Param('id') id: string,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body('galleryData') galleryData: string,
+  ) {
+    try {
+      this.logger.debug(`=== Atualizando página de galeria ID=${id} ===`);
+
+      if (!galleryData) throw new BadRequestException('galleryData é obrigatório.');
+
+      const parsedData = JSON.parse(galleryData);
+      const { title, description, items } = parsedData;
+      if (!Array.isArray(items)) throw new BadRequestException('items deve ser um array.');
+
+      const filesDict: Record<string, Express.Multer.File> = {};
+      files.forEach((file) => (filesDict[file.fieldname] = file));
+
+      const adaptedData = {
+        id,
+        name: title,
+        description,
+        sections: items,
+      };
+
+      const updatedPage = await this.galleryService.updateGalleryPage(id, adaptedData, filesDict);
+
+      return {
+        id: updatedPage.id,
+        name: updatedPage.name,
+        description: updatedPage.description,
+        sections: updatedPage.sections.map((section) => ({
+          id: section.id,
+          caption: section.caption,
+          description: section.description,
+          images: section.images?.map((img) => ({
+            id: img.id,
+            url: img.url,
+            isLocalFile: img.isLocalFile,
+            originalName: img.originalName,
+          })),
+        })),
+      };
+    } catch (error) {
+      this.logger.error('Erro ao atualizar galeria:', error);
+      throw new BadRequestException('Erro ao atualizar a página de galeria.');
     }
   }
 
   @Get()
   async findAll() {
-    this.logger.debug('Buscando todas as páginas de galeria...');
-
     const pages = await this.galleryService.findAllPages();
-
-    const safeResult = pages.map((page) => ({
+    return pages.map((page) => ({
       id: page.id,
       name: page.name,
       description: page.description,
@@ -119,31 +137,18 @@ export class GalleryController {
         })),
       })),
     }));
-
-    this.logger.debug(`Total de páginas encontradas: ${safeResult.length}`);
-    return safeResult;
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    this.logger.debug(`Buscando página de galeria com ID=${id}...`);
-
     const page = await this.galleryService.findOnePage(id);
-
-    if (!page) {
-      this.logger.warn(`Página de galeria ID=${id} não encontrada.`);
-      throw new BadRequestException('Página de galeria não encontrada.');
-    }
-
-    this.logger.debug(`Página de galeria encontrada: ID=${page.id}, Nome="${page.name}"`);
+    if (!page) throw new BadRequestException('Página de galeria não encontrada.');
     return page;
   }
 
   @Delete(':id')
   async removePage(@Param('id', ParseIntPipe) id: string) {
-    this.logger.debug(`Removendo página de galeria com ID=${id}...`);
     await this.galleryService.removePage(id);
-    this.logger.debug(`Página de galeria ID=${id} removida com sucesso.`);
     return { message: 'Página de galeria removida com sucesso' };
   }
 }
