@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from 'database/database.module';
 import { GalleryModule } from './gallery/gallery.module';
+import { RouteModule } from './route/route.module';
 
 @Module({
   imports: [
@@ -9,7 +10,8 @@ import { GalleryModule } from './gallery/gallery.module';
       isGlobal: true,
     }),
     DatabaseModule,
-    GalleryModule
+    GalleryModule,
+    RouteModule
   ],
 })
 export class AppModule {}

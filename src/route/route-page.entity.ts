@@ -11,6 +11,9 @@ export class Route {
   @Column({ type: 'varchar', length: 100 })
   entityType: string;
 
+  @Column({ type: 'text' })
+  description: string;
+
   @Column({ type: 'uuid' })
   entityId: string;
 
