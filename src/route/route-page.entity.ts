@@ -1,4 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+
+export enum RouteType {
+  PAGE = 'page',
+  DOC = 'doc',
+  IMAGE = 'image',
+}
 
 @Entity('routes')
 export class Route {
@@ -16,6 +28,12 @@ export class Route {
 
   @Column({ type: 'uuid' })
   entityId: string;
+
+  @Column({ type: 'enum', enum: RouteType })
+  type: RouteType;
+
+  @Column({ type: 'varchar', nullable: true })
+  image: string;
 
   @CreateDateColumn()
   createdAt: Date;
