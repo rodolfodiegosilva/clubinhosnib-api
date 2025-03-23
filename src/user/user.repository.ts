@@ -11,8 +11,13 @@ export class UserRepository {
   ) {}
 
   async create(user: Partial<User>): Promise<User> {
-    const newUser = this.repo.create(user);
-    return this.repo.save(newUser);
+    try {
+      const newUser = this.repo.create(user);
+      const savedUser = await this.repo.save(newUser);
+      return savedUser;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async findAll(): Promise<User[]> {
