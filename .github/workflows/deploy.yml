@@ -52,8 +52,6 @@ jobs:
           sudo systemctl start docker
           sudo usermod -aG docker $(whoami)
           newgrp docker
-      - name: Clean up Docker system
-        run: sudo docker system prune -a -f
       - name: Pull image from docker hub
         run: sudo docker pull diegoseven/clubinho-api:latest
       - name: Remove docker container
