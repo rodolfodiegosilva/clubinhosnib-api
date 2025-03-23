@@ -5,6 +5,7 @@ import { GallerySection } from 'src/gallery/gallery-section.entity';
 import { GalleryImage } from 'src/gallery/gallery-image.entity';
 import { GalleryPage } from 'src/gallery/gallery-page.entity';
 import { Route } from 'src/route/route-page.entity';
+import { User } from 'src/user/user.entity';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { Route } from 'src/route/route-page.entity';
         username: configService.get<string>('DB_USERNAME', 'root'),
         password: configService.get<string>('DB_PASSWORD', ''),
         database: configService.get<string>('DB_NAME', 'test'),
-        entities: [ GalleryPage, GalleryImage, GallerySection, Route],
+        entities: [ GalleryPage, GalleryImage, GallerySection, Route, User],
         synchronize: true,
       }),
     }),

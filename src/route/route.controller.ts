@@ -4,9 +4,11 @@ import {
   Delete,
   Param,
   Logger,
+  UseGuards,
 } from '@nestjs/common';
 import { RouteService } from './route.service';
 import { Route } from './route-page.entity';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('routes')
 export class RouteController {
@@ -31,7 +33,8 @@ export class RouteController {
     }
     return route;
   }
-
+  
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async removeRoute(@Param('id') id: string) {
     this.logger.debug(`Removendo rota com ID=${id}...`);
