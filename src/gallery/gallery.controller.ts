@@ -11,9 +11,11 @@ import {
   UseInterceptors,
   BadRequestException,
   Logger,
+  UseGuards,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { GalleryService } from './gallery.service';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('gallery')
 export class GalleryController {
@@ -21,6 +23,7 @@ export class GalleryController {
 
   constructor(private readonly galleryService: GalleryService) { }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @UseInterceptors(AnyFilesInterceptor())
   async createGalleryPage(
@@ -69,6 +72,7 @@ export class GalleryController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @UseInterceptors(AnyFilesInterceptor())
   async updateGalleryPage(
@@ -146,6 +150,7 @@ export class GalleryController {
     return page;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async removePage(@Param('id', ParseIntPipe) id: string) {
     await this.galleryService.removePage(id);
