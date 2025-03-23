@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RouteRepository } from './route-page.repository';
-import { Route } from './route-page.entity';
+import { Route, RouteType } from './route-page.entity';
 
 @Injectable()
 export class RouteService {
@@ -16,9 +16,9 @@ export class RouteService {
     }
   }
 
-  async createRouteForGallery(path: string, description: string, entityId: string): Promise<Route> {
+  async createRouteForGallery(path: string, description: string, entityId: string, type: RouteType): Promise<Route> {
     this.logger.debug(`Criando rota para GalleryPage. Path="${path}", entityId="${entityId}"`);
-    return this.routeRepo.createRoute(path, 'GalleryPage', entityId, description);
+    return this.routeRepo.createRoute(path, 'GalleryPage', entityId, description,type);
   }
 
   async findAllRoutes(): Promise<Route[]> {

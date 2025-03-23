@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
-import { Route } from './route-page.entity';
+import { Route, RouteType } from './route-page.entity';
 
 @Injectable()
 export class RouteRepository extends Repository<Route> {
@@ -31,12 +31,13 @@ export class RouteRepository extends Repository<Route> {
     return this.findOne({ where: { entityType, entityId } });
   }
 
-  async createRoute(path: string, entityType: string, entityId: string, description: string) {
+  async createRoute(path: string, entityType: string, entityId: string, description: string, type: RouteType): Promise<Route> {
     const route = this.create({
       path,
       entityType,
       entityId,
       description,
+      type
     });
     return this.save(route);
   }

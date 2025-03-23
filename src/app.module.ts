@@ -5,6 +5,7 @@ import { GalleryModule } from './gallery/gallery.module';
 import { RouteModule } from './route/route.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { AwsModule } from './aws/aws.module';
 
 @Module({
   imports: [
@@ -12,10 +13,11 @@ import { AuthModule } from './auth/auth.module';
       isGlobal: true,
     }),
     DatabaseModule,
+    AwsModule,
     GalleryModule,
     RouteModule,
     UserModule,
-    AuthModule
+    AuthModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

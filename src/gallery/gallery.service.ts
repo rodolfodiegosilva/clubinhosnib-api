@@ -1,31 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { CreateGalleryPageDTO } from './dto/create-gallery.dto';
 import { GalleryPage } from './gallery-page.entity';
 import { GallerySection } from './gallery-section.entity';
 import { GalleryImage } from './gallery-image.entity';
 import { GalleryPageRepository } from './gallery-page.repository';
 import { RouteService } from 'src/route/route.service';
-import { Route } from 'src/route/route-page.entity';
+import { Route, RouteType } from 'src/route/route-page.entity';
+import { AwsS3Service } from 'src/aws/aws-s3.service';
 
 @Injectable()
 export class GalleryService {
   private readonly logger = new Logger(GalleryService.name);
-  private readonly s3Client: S3Client;
 
   constructor(
     private readonly galleryPageRepo: GalleryPageRepository,
     private readonly routeService: RouteService,
-  ) {
-    this.logger.debug('Inicializando S3Client...');
-    this.s3Client = new S3Client({
-      region: process.env.AWS_REGION || 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? '',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? '',
-      },
-    });
-  }
+    private readonly awsS3Service: AwsS3Service,
+  ) {}
 
   async createGalleryPage(
     pageData: CreateGalleryPageDTO,
@@ -44,6 +35,7 @@ export class GalleryService {
       routePath,
       newPage.description,
       newPage.id,
+      RouteType.PAGE,
     );
     newPage.route = createdRoute;
 
@@ -61,7 +53,7 @@ export class GalleryService {
               if (!file) return null;
 
               const newImage = new GalleryImage();
-              newImage.url = await this.uploadToS3(file);
+              newImage.url = await this.awsS3Service.upload(file);
               newImage.isLocalFile = true;
               newImage.originalName = file.originalname;
               newImage.size = file.size;
@@ -99,21 +91,26 @@ export class GalleryService {
 
     const existingImages = existingPage.sections.flatMap((s) => s.images);
 
-    const newImageUrls = pageData.sections
-      .flatMap((section) => section.images || [])
-      .map((img) => img.url || '');
-    const newUrlSet = new Set(newImageUrls);
-
-    this.logger.debug(`📸 Existentes: ${existingImages.length}, Novas: ${newUrlSet.size}`);
+    const newImageMap = new Map<string, { url: string; isLocalFile: boolean }>();
+    pageData.sections.forEach(section => {
+      (section.images || []).forEach(img => {
+        if (img.url) {
+          newImageMap.set(img.url, { url: img.url, isLocalFile: img.isLocalFile });
+        }
+      });
+    });
 
     const removedImages = existingImages.filter((img) => {
-      return img.isLocalFile && img.url && !newUrlSet.has(img.url);
+      return img.url && !newImageMap.has(img.url);
     });
-    this.logger.debug(`🗑️ Removendo do S3: ${removedImages.length} imagens`);
 
     for (const image of removedImages) {
-      this.logger.debug(`🗑️ Excluindo: ${image.url}`);
-      await this.deleteFromS3(image.url);
+      if (image.isLocalFile) {
+        this.logger.debug(`🗑️ Excluindo imagem local: ${image.url}`);
+        await this.awsS3Service.delete(image.url);
+      } else {
+        this.logger.debug(`🗑️ Removendo referência de imagem externa: ${image.url}`);
+      }
     }
 
     existingPage.name = pageData.name;
@@ -128,12 +125,10 @@ export class GalleryService {
 
         const images = await Promise.all(
           (sectionItem.images || []).map(async (img) => {
-            if (img.isLocalFile) {
+            if (img.isLocalFile && filesDict[img.fileFieldName as string]) {
               const file = filesDict[img.fileFieldName as string];
-              if (!file) return null;
-
               const image = new GalleryImage();
-              image.url = await this.uploadToS3(file);
+              image.url = await this.awsS3Service.upload(file);
               image.isLocalFile = true;
               image.originalName = file.originalname;
               image.size = file.size;
@@ -142,12 +137,18 @@ export class GalleryService {
             } else {
               const image = new GalleryImage();
               image.url = img.url || '';
-              image.isLocalFile = false;
+
+              const previousImage = existingImages.find(e => e.url === img.url);
+              image.isLocalFile = previousImage?.isLocalFile ?? false;
+
+              image.originalName = previousImage?.originalName || '';
+              image.size = previousImage?.size || 0;
               image.section = section;
               return image;
             }
           }),
         );
+
         section.images = images.filter((img): img is GalleryImage => img !== null);
         return section;
       }),
@@ -170,54 +171,6 @@ export class GalleryService {
         .replace(/_+/g, '_')
         .trim()
     );
-  }
-
-  private async uploadToS3(file: Express.Multer.File): Promise<string> {
-    const bucketName = process.env.AWS_S3_BUCKET_NAME;
-    if (!bucketName) throw new Error('❌ AWS_S3_BUCKET_NAME não foi definido!');
-
-    const s3Key = `uploads/${Date.now()}_${file.originalname}`;
-    this.logger.debug(`📂 Enviando para S3: ${s3Key}`);
-
-    const command = new PutObjectCommand({
-      Bucket: bucketName,
-      Key: s3Key,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-    });
-
-    try {
-      await this.s3Client.send(command);
-      return `https://${bucketName}.s3.amazonaws.com/${s3Key}`;
-    } catch (error) {
-      this.logger.error(`❌ Erro no upload: ${error.message}`);
-      throw new Error('Falha no upload para S3');
-    }
-  }
-
-  private async deleteFromS3(url: string): Promise<void> {
-    const bucketName = process.env.AWS_S3_BUCKET_NAME;
-    if (!bucketName) throw new Error('❌ AWS_S3_BUCKET_NAME não foi definido!');
-
-    const key = url.split(`${bucketName}.s3.amazonaws.com/`)[1];
-    if (!key) {
-      this.logger.warn(`❗ Falha ao extrair chave do S3 a partir de: ${url}`);
-      return;
-    }
-
-    this.logger.debug(`🔑 Chave do S3: ${key}`);
-
-    const command = new DeleteObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-    });
-
-    try {
-      await this.s3Client.send(command);
-      this.logger.debug(`🗑️ Removido do S3: ${key}`);
-    } catch (error) {
-      this.logger.error(`❌ Erro ao excluir do S3: ${error.message}`);
-    }
   }
 
   async findAllPages(): Promise<GalleryPage[]> {
