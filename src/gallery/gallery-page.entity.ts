@@ -1,4 +1,13 @@
-import { Entity, PrimaryColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  OneToMany,
+  OneToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { GallerySection } from './gallery-section.entity';
 import { Route } from '../route/route-page.entity';
@@ -14,11 +23,20 @@ export class GalleryPage {
   @Column({ type: 'text' })
   description: string;
 
-  @OneToOne(() => Route, { cascade: true, eager: true })
+  // Associação com a rota da página - cascade e exclusão em cascata
+  @OneToOne(() => Route, {
+    cascade: true,
+    eager: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   route: Route;
 
-  @OneToMany(() => GallerySection, (section) => section.page, { cascade: true })
+  // Seções da galeria (e suas imagens) são removidas em cascata
+  @OneToMany(() => GallerySection, (section) => section.page, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   sections: GallerySection[];
 
   @CreateDateColumn()
