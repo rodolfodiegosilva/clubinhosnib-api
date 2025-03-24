@@ -17,6 +17,15 @@ export class Route {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column()
+  name: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  image: string;
+  
+  @Column()
+  idToFetch: string;
+
   @Column({ type: 'varchar', length: 255, unique: true })
   path: string;
 
@@ -32,8 +41,6 @@ export class Route {
   @Column({ type: 'enum', enum: RouteType })
   type: RouteType;
 
-  @Column({ type: 'varchar', nullable: true })
-  image: string;
 
   @CreateDateColumn()
   createdAt: Date;

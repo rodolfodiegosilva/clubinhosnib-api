@@ -12,8 +12,7 @@ import { GalleryImage } from './gallery-image.entity';
 import { GalleryPageRepository } from './gallery-page.repository';
 import { GallerySectionRepository } from './gallery-section.repository';
 import { GalleryImageRepository } from './gallery-image.repository';
-
-import { RouteModule } from 'src/route/route.module'; // <-- Importa RouteModule
+import { RouteModule } from 'route/route.module';
 
 @Module({
   imports: [

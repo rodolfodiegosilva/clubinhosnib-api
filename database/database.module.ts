@@ -1,12 +1,12 @@
 import { Module, Logger } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { GallerySection } from 'src/gallery/gallery-section.entity';
-import { GalleryImage } from 'src/gallery/gallery-image.entity';
-import { GalleryPage } from 'src/gallery/gallery-page.entity';
-import { Route } from 'src/route/route-page.entity';
-import { User } from 'src/user/user.entity';
 import { DatabaseLoggerService } from './database-logger.service';
+import { GalleryPage } from 'gallery/gallery-page.entity';
+import { GalleryImage } from 'gallery/gallery-image.entity';
+import { GallerySection } from 'gallery/gallery-section.entity';
+import { Route } from 'route/route-page.entity';
+import { User } from 'user/user.entity';
 
 @Module({
   imports: [

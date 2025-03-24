@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { DatabaseModule } from 'database/database.module';
 import { GalleryModule } from './gallery/gallery.module';
 import { RouteModule } from './route/route.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { AwsModule } from './aws/aws.module';
+import { DatabaseModule } from '../database/database.module';
 
 @Module({
   imports: [
@@ -18,6 +18,7 @@ import { AwsModule } from './aws/aws.module';
     RouteModule,
     UserModule,
     AuthModule,
+    RouteModule
   ],
 })
 export class AppModule { }
