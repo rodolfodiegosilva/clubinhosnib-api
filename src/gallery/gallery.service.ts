@@ -1,3 +1,4 @@
+
 import { Injectable, Logger } from '@nestjs/common';
 import { CreateGalleryPageDTO } from './dto/create-gallery.dto';
 import { GalleryPage } from './gallery-page.entity';
@@ -16,7 +17,7 @@ export class GalleryService {
     private readonly galleryPageRepo: GalleryPageRepository,
     private readonly routeService: RouteService,
     private readonly awsS3Service: AwsS3Service,
-  ) {}
+  ) { }
 
   async createGalleryPage(
     pageData: CreateGalleryPageDTO,
@@ -203,9 +204,32 @@ export class GalleryService {
 
   async removePage(id: string): Promise<void> {
     this.logger.debug(`🗑️ Removendo galeria ID=${id}...`);
+
     const page = await this.galleryPageRepo.findOneWithRelations(id);
-    if (!page) throw new Error('Página não encontrada');
+    if (!page) {
+      this.logger.warn(`⚠️ Página não encontrada para exclusão ID=${id}`);
+      throw new Error('Página não encontrada');
+    }
+
+    const localImages = page.sections
+      .flatMap((section) => section.images)
+      .filter((image) => image.isLocalFile);
+
+    await Promise.all(
+      localImages.map(async (image) => {
+        this.logger.debug(`🧹 Excluindo imagem local do S3: ${image.url}`);
+        await this.awsS3Service.delete(image.url);
+      })
+    );
+
+    if (page.route?.id) {
+      this.logger.debug(`🗑️ Removendo rota associada ID=${page.route.id}`);
+      await this.routeService.removeRoute(page.route.id);
+    }
+
     await this.galleryPageRepo.remove(page);
-    this.logger.debug(`✅ Galeria removida ID=${id}`);
+
+    this.logger.debug(`✅ Galeria removida com sucesso: ID=${id}`);
   }
+
 }

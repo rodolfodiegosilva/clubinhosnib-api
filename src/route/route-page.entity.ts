@@ -22,7 +22,7 @@ export class Route {
 
   @Column({ type: 'varchar', nullable: true })
   image: string;
-  
+
   @Column()
   idToFetch: string;
 
@@ -40,7 +40,6 @@ export class Route {
 
   @Column({ type: 'enum', enum: RouteType })
   type: RouteType;
-
 
   @CreateDateColumn()
   createdAt: Date;
