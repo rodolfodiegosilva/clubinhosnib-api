@@ -15,7 +15,7 @@ import {
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { GalleryService } from './gallery.service';
 import { GalleryPageResponseDTO } from './dto/gallery-page-response.dto';
-import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('gallery')
 export class GalleryController {

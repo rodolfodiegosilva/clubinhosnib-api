@@ -4,9 +4,9 @@ import { GalleryPage } from './gallery-page.entity';
 import { GallerySection } from './gallery-section.entity';
 import { GalleryImage } from './gallery-image.entity';
 import { GalleryPageRepository } from './gallery-page.repository';
-import { RouteService } from 'route/route.service';
-import { AwsS3Service } from 'aws/aws-s3.service';
-import { RouteType } from 'route/route-page.entity';
+import { RouteService } from 'src/route/route.service';
+import { AwsS3Service } from 'src/aws/aws-s3.service';
+import { RouteType } from 'src/route/route-page.entity';
 
 @Injectable()
 export class GalleryService {

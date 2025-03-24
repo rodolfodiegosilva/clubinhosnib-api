@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { RouteService } from './route.service';
 import { Route } from './route-page.entity';
-import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('routes')
 export class RouteController {
