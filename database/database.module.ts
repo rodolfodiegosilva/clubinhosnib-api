@@ -9,6 +9,8 @@ import { Route } from 'src/route/route-page.entity';
 import { User } from 'src/user/user.entity';
 import { VideosPage } from 'src/video-page/entities/video-page.entity/video-page.entity';
 import { VideoItem } from 'src/video-page/entities/video-item.entity/video-item.entity';
+import { StudyMaterialsPage } from 'src/study-material-page/entities/study-material-page.entity/study-material-page.entity';
+import { StudyMediaItem } from 'src/study-material-page/entities/study-media-item/StudyMediaItem';
 ;
 
 @Module({
@@ -28,7 +30,7 @@ import { VideoItem } from 'src/video-page/entities/video-item.entity/video-item.
           username: configService.get<string>('DB_USERNAME', 'root'),
           password: configService.get<string>('DB_PASSWORD', ''),
           database: configService.get<string>('DB_NAME', 'test'),
-          entities: [GalleryPage, GalleryImage, GallerySection, Route, User, VideosPage, VideoItem],
+          entities: [GalleryPage, GalleryImage, GallerySection, Route, User, VideosPage, VideoItem,StudyMaterialsPage,StudyMediaItem],
           synchronize: true,
         };
 

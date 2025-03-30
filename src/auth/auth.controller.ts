@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Request, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Request, UseGuards, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -21,5 +21,12 @@ export class AuthController {
   @Post('logout')
   logout(@Request() req) {
     return this.authService.logout(req.user.userId);
+  }
+
+  // 👇 Endpoint GET /me protegido por JwtAuthGuard
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getMe(@Request() req) {
+    return this.authService.getMe(req.user.userId);
   }
 }
