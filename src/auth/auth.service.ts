@@ -48,6 +48,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role,
       },
       accessToken,
       refreshToken,
@@ -94,4 +95,22 @@ export class AuthService {
     await this.userService.updateRefreshToken(userId, null);
     return { message: 'User logged out' };
   }
+
+  async getMe(userId: string) {
+    this.logger.debug(`Buscando dados do usuário para ID: ${userId}`);
+  
+    const user = await this.userService.findOne(userId);
+    if (!user) {
+      this.logger.warn(`Usuário não encontrado: ${userId}`);
+      throw new UnauthorizedException('User not found');
+    }
+  
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    };
+  }
+  
 }

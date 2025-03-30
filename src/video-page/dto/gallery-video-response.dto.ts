@@ -18,7 +18,8 @@ export class VideoItemResponseDTO {
 export class VideoRouteResponseDTO {
   id: string;
   path: string;
-  name: string;
+  title: string;
+  subtitle: string;
   description: string;
   type: RouteType;
 }
@@ -43,7 +44,8 @@ export class VideosPageResponseDTO {
     dto.route = {
       id: entity.route.id,
       path: entity.route.path,
-      name: entity.route.name,
+      title: entity.route.title,
+      subtitle: entity.route.subtitle,
       description: entity.route.description,
       type: entity.route.type,
     };

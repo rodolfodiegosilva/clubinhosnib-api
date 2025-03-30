@@ -8,10 +8,10 @@ export class RouteService {
 
   constructor(private readonly routeRepo: RouteRepository) {}
 
-  generateRoute(name: string, prefix: string): string {
+  generateRoute(title: string, prefix: string): string {
     const route = (
       prefix +
-      name
+      title
         .toLowerCase()
         .normalize('NFD')
         .replace(/[̀-ͯ]/g, '')
@@ -20,7 +20,7 @@ export class RouteService {
         .replace(/_+/g, '_')
         .trim()
     );
-    this.logger.debug(`🔤 Rota gerada para "${name}": ${route}`);
+    this.logger.debug(`🔤 Rota gerada para "${title}": ${route}`);
     return route;
   }
 
@@ -40,7 +40,8 @@ export class RouteService {
   }
 
   async createRoute(data: {
-    name: string;
+    title: string;
+    subtitle: string;
     idToFetch: string;
     path?: string;
     entityType: string;
@@ -50,11 +51,12 @@ export class RouteService {
     image?: string;
     prefix?: string;
   }): Promise<Route> {
-    const path = data.path || (await this.generateAvailablePath(data.name, data.prefix || ''));
+    const path = data.path || (await this.generateAvailablePath(data.title, data.prefix || ''));
     this.logger.debug(`🛠️ Criando rota para ${data.entityType} com path: "${path}"`);
 
     const route = new Route();
-    route.name = data.name;
+    route.title = data.title;    
+    route.subtitle = data.subtitle;
     route.idToFetch = data.idToFetch;
     route.path = path;
     route.entityType = data.entityType;
@@ -68,7 +70,7 @@ export class RouteService {
     return savedRoute;
   }
 
-  async updateRoute(id: string, updateData: Partial<Pick<Route, 'name' | 'description' | 'path'>>): Promise<Route> {
+  async updateRoute(id: string, updateData: Partial<Pick<Route, 'title' | 'description' | 'path' | 'subtitle'>>): Promise<Route> {
     this.logger.debug(`✏️ Iniciando atualização da rota ID=${id}`);
     const route = await this.routeRepo.findOne({ where: { id } });
     if (!route) {
@@ -76,9 +78,9 @@ export class RouteService {
       throw new Error('Rota não encontrada para atualização');
     }
 
-    if (updateData.name) {
-      route.name = updateData.name;
-      this.logger.debug(`📝 Nome da rota atualizado para: ${route.name}`);
+    if (updateData.title) {
+      route.title = updateData.title;
+      this.logger.debug(`📝 Nome da rota atualizado para: ${route.title}`);
     }
     if (updateData.description) {
       route.description = updateData.description;

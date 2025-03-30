@@ -1,5 +1,6 @@
 export class CreateGalleryPageDTO {
     name: string;
+    subtitle: string;
     description: string;
     sections: CreateGallerySectionDTO[];
   }

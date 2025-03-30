@@ -20,7 +20,8 @@ export class GallerySectionResponseDTO {
 export class GalleryRouteResponseDTO {
   id: string;
   path: string;
-  name: string;
+  title: string;
+  subtitle: string;
   description: string;
   type: string;
 }
@@ -44,7 +45,8 @@ export class GalleryPageResponseDTO {
     dto.route = {
       id: entity.route.id,
       path: entity.route.path,
-      name: entity.route.name,
+      title: entity.route.title,      
+      subtitle: entity.route.subtitle,
       description: entity.route.description,
       type: entity.route.type,
     };

@@ -23,7 +23,7 @@ export class GalleryService {
     pageData: CreateGalleryPageDTO,
     filesDict: { [fileField: string]: Express.Multer.File },
   ): Promise<GalleryPage> {
-    const { name, description, sections } = pageData;
+    const { name,subtitle, description, sections } = pageData;
     this.logger.debug(`🔍 Iniciando criação da galeria: "${name}"`);
 
     const newPage = new GalleryPage();
@@ -37,7 +37,8 @@ export class GalleryService {
     this.logger.debug(`📍 Rota gerada: ${routePath}`);
 
     const createdRoute = await this.routeService.createRoute({
-      name,
+      title:name,
+      subtitle: subtitle,
       idToFetch: savedPage.id,
       path: routePath,
       entityType: 'GalleryPage',
@@ -138,7 +139,8 @@ export class GalleryService {
         const newPath = await this.routeService.generateAvailablePath(pageData.name, 'galeria_');
         this.logger.debug(`✏️ Atualizando rota: novo path será ${newPath}`);
         await this.routeService.updateRoute(existingPage.route.id, {
-          name: pageData.name,
+          title: pageData.name,
+          subtitle: pageData.subtitle,
           description: pageData.description,
           path: newPath,
         });

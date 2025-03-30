@@ -18,7 +18,10 @@ export class Route {
   id: string;
 
   @Column()
-  name: string;
+  title: string;
+
+  @Column()
+  subtitle: string;
 
   @Column({ type: 'varchar', nullable: true })
   image: string;

@@ -36,7 +36,7 @@ export class GalleryController {
       if (!galleryData) throw new BadRequestException('galleryData é obrigatório.');
 
       const parsedData = JSON.parse(galleryData);
-      const { title, description, items } = parsedData;
+      const { title, subtitle, description, items } = parsedData;
       if (!Array.isArray(items)) throw new BadRequestException('items deve ser um array.');
 
       const filesDict: Record<string, Express.Multer.File> = {};
@@ -44,6 +44,7 @@ export class GalleryController {
 
       const adaptedData = {
         name: title,
+        subtitle: subtitle,
         description,
         sections: items,
       };
@@ -70,7 +71,7 @@ export class GalleryController {
       if (!galleryData) throw new BadRequestException('galleryData é obrigatório.');
 
       const parsedData = JSON.parse(galleryData);
-      const { title, description, items } = parsedData;
+      const { title, subtitle, description, items } = parsedData;
       if (!Array.isArray(items)) throw new BadRequestException('items deve ser um array.');
 
       const filesDict: Record<string, Express.Multer.File> = {};
@@ -79,6 +80,8 @@ export class GalleryController {
       const adaptedData = {
         id,
         name: title,
+        
+        subtitle: subtitle,
         description,
         sections: items,
       };

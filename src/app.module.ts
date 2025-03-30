@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { AwsModule } from './aws/aws.module';
 import { DatabaseModule } from '../database/database.module';
 import { VideosPageModule } from './video-page/video-page.module';
+import { StudyMaterialsPageModule } from './study-material-page/study-material-page.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { VideosPageModule } from './video-page/video-page.module';
     UserModule,
     AuthModule,
     RouteModule,
-    VideosPageModule,    
+    VideosPageModule,
+    StudyMaterialsPageModule 
   ],
 })
 export class AppModule { }

@@ -12,6 +12,8 @@ import { RouteType } from 'src/route/route-page.entity';
 export interface CreateVideosPageDto {
   pageTitle: string;
   pageDescription: string;
+  
+  subtitle: string;
   videos: {
     title: string;
     description: string;
@@ -36,7 +38,7 @@ export class VideosPageService {
     dto: CreateVideosPageDto,
     filesDict: { [fileField: string]: Express.Multer.File },
   ): Promise<VideosPage> {
-    const { pageTitle, pageDescription, videos } = dto;
+    const { pageTitle, subtitle, pageDescription, videos } = dto;
     this.logger.debug(`🔍 Iniciando criação da página de vídeos: "${pageTitle}"`);
 
     const newPage = new VideosPage();
@@ -50,7 +52,8 @@ export class VideosPageService {
     this.logger.debug(`📍 Rota gerada: ${routePath}`);
 
     const createdRoute = await this.routeService.createRoute({
-      name: pageTitle,
+      title: pageTitle,
+      subtitle: subtitle,
       idToFetch: savedPage.id,
       path: routePath,
       entityType: 'VideosPage',
@@ -136,7 +139,8 @@ export class VideosPageService {
         const newPath = await this.routeService.generateAvailablePath(dto.pageTitle, '_videos');
         this.logger.debug(`✏️ Atualizando rota: novo path será ${newPath}`);
         await this.routeService.updateRoute(existingPage.route.id, {
-          name: dto.pageTitle,
+          title: dto.pageTitle,
+          subtitle: dto.pageSubtitle,
           description: dto.pageDescription,
           path: newPath,
         });
