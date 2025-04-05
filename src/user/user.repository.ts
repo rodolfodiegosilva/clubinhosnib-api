@@ -11,13 +11,8 @@ export class UserRepository {
   ) {}
 
   async create(user: Partial<User>): Promise<User> {
-    try {
-      const newUser = this.repo.create(user);
-      const savedUser = await this.repo.save(newUser);
-      return savedUser;
-    } catch (error) {
-      throw error;
-    }
+    const newUser = this.repo.create(user);
+    return this.repo.save(newUser);
   }
 
   async findAll(): Promise<User[]> {
@@ -38,7 +33,6 @@ export class UserRepository {
     if (!updated) throw new Error('User not found after update');
     return updated;
   }
-  
 
   async delete(id: string): Promise<void> {
     await this.repo.delete(id);
@@ -47,5 +41,4 @@ export class UserRepository {
   async updateRefreshToken(id: string, refreshToken: string | null): Promise<void> {
     await this.repo.update(id, { refreshToken });
   }
-  
 }

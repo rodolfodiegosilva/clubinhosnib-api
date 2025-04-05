@@ -2,15 +2,18 @@ import { Module, Logger } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DatabaseLoggerService } from './database-logger.service';
-import { GalleryPage } from 'src/gallery/gallery-page.entity';
-import { GalleryImage } from 'src/gallery/gallery-image.entity';
-import { GallerySection } from 'src/gallery/gallery-section.entity';
-import { Route } from 'src/route/route-page.entity';
+import { MeditationEntity } from 'src/meditation/entities/meditation.entity';
+import { DayEntity } from 'src/meditation/entities/day.entity';
+import { ImagePageEntity } from 'src/pages/image-page/entity/Image-page.entity';
+import { ImageSectionEntity } from 'src/pages/image-page/entity/Image-section.entity';
+import { RouteEntity } from 'src/route/route-page.entity';
 import { User } from 'src/user/user.entity';
-import { VideosPage } from 'src/video-page/entities/video-page.entity/video-page.entity';
-import { VideoItem } from 'src/video-page/entities/video-item.entity/video-item.entity';
-import { StudyMaterialsPage } from 'src/study-material-page/entities/study-material-page.entity/study-material-page.entity';
-import { StudyMediaItem } from 'src/study-material-page/entities/study-media-item/StudyMediaItem';
+import { VideosPage } from 'src/pages/video-page/entities/video-page.entity';
+
+import { WeekMaterialsPageEntity } from 'src/pages/week-material-page/entities/week-material-page.entity/week-material-page.entity';
+import { MediaItemEntity } from 'src/share/media/media-item/media-item.entity';
+import { ContactEntity } from 'src/contact/contact.entity';
+import { EventEntity } from 'src/pages/event-page/entities/event.entity';
 ;
 
 @Module({
@@ -30,7 +33,7 @@ import { StudyMediaItem } from 'src/study-material-page/entities/study-media-ite
           username: configService.get<string>('DB_USERNAME', 'root'),
           password: configService.get<string>('DB_PASSWORD', ''),
           database: configService.get<string>('DB_NAME', 'test'),
-          entities: [GalleryPage, GalleryImage, GallerySection, Route, User, VideosPage, VideoItem,StudyMaterialsPage,StudyMediaItem],
+          entities: [EventEntity,ImagePageEntity, ImageSectionEntity, RouteEntity, User, VideosPage, WeekMaterialsPageEntity, MeditationEntity, DayEntity, MediaItemEntity,ContactEntity],
           synchronize: true,
         };
 

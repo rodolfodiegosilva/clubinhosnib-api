@@ -6,7 +6,6 @@ export class AuthRepository {
   constructor(private readonly userRepo: UserRepository) {}
 
   async validateUser(email: string, password: string) {
-    const user = await this.userRepo.findByEmail(email);
-    return user;
+    return this.userRepo.findByEmail(email);
   }
 }

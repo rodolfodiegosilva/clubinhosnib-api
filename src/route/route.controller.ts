@@ -7,7 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { RouteService } from './route.service';
-import { Route } from './route-page.entity';
+import { RouteEntity } from './route-page.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('routes')
@@ -17,7 +17,7 @@ export class RouteController {
   constructor(private readonly routeService: RouteService) {}
 
   @Get()
-  async findAll(): Promise<Route[]> {
+  async findAll(): Promise<RouteEntity[]> {
     this.logger.debug('Buscando todas as rotas...');
     const routes = await this.routeService.findAllRoutes();
     this.logger.debug(`Total de rotas encontradas: ${routes.length}`);
@@ -25,7 +25,7 @@ export class RouteController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Route | null> {
+  async findOne(@Param('id') id: string): Promise<RouteEntity | null> {
     this.logger.debug(`Buscando rota com ID=${id}`);
     const route = await this.routeService.findById(id);
     if (!route) {

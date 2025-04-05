@@ -5,6 +5,7 @@ import * as bcrypt from 'bcryptjs';
 import { AuthRepository } from './auth.repository';
 import { LoginDto } from './dto/login.dto';
 import { UserService } from 'src/user/user.service';
+import { User } from 'src/user/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -17,11 +18,22 @@ export class AuthService {
     private readonly userService: UserService,
   ) {}
 
+  private generateTokens(userId: string, email: string): { accessToken: string; refreshToken: string } {
+    const payload = { sub: userId, email };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.config.get<string>('JWT_REFRESH_SECRET'),
+      expiresIn: this.config.get<string>('JWT_REFRESH_EXPIRES_IN'),
+    });
+    return { accessToken, refreshToken };
+  }
+
   async login(dto: LoginDto) {
     this.logger.debug(`Tentando login para o email: ${dto.email}`);
+
     const user = await this.authRepo.validateUser(dto.email, dto.password);
     if (!user) {
-      this.logger.warn(`Credenciais inválidas para o email: ${dto.email}`);
+      this.logger.warn(`Usuário não encontrado para o email: ${dto.email}`);
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -31,17 +43,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { sub: user.id, email: user.email };
-
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: this.config.get<string>('JWT_REFRESH_SECRET'),
-      expiresIn: this.config.get<string>('JWT_REFRESH_EXPIRES_IN'),
-    });
-
+    const { accessToken, refreshToken } = this.generateTokens(user.id, user.email);
     await this.userService.updateRefreshToken(user.id, refreshToken);
 
-    this.logger.debug(`Login bem-sucedido para o email: ${dto.email}`);
+    this.logger.log(`Login bem-sucedido para o email: ${dto.email}`);
     return {
       message: 'Login successful',
       user: {
@@ -55,31 +60,28 @@ export class AuthService {
     };
   }
 
-  async refreshToken(token: string) {
+  async refreshToken(refreshToken: string) {
+    if (!refreshToken) {
+      this.logger.warn('Refresh token não fornecido');
+      throw new UnauthorizedException('Refresh token is required');
+    }
+
     try {
       this.logger.debug('Tentando refresh token');
-      const payload = this.jwtService.verify(token, {
+      const payload = this.jwtService.verify(refreshToken, {
         secret: this.config.get<string>('JWT_REFRESH_SECRET'),
       });
 
       const user = await this.userService.findOne(payload.sub);
-
-      if (!user || user.refreshToken !== token) {
-        this.logger.warn('Refresh token inválido');
-        throw new UnauthorizedException('Refresh token invalid');
+      if (!user || user.refreshToken !== refreshToken) {
+        this.logger.warn(`Refresh token inválido para o usuário ID: ${payload.sub}`);
+        throw new UnauthorizedException('Invalid refresh token');
       }
 
-      const newPayload = { sub: user.id, email: user.email };
-
-      const accessToken = this.jwtService.sign(newPayload);
-      const newRefreshToken = this.jwtService.sign(newPayload, {
-        secret: this.config.get<string>('JWT_REFRESH_SECRET'),
-        expiresIn: this.config.get<string>('JWT_REFRESH_EXPIRES_IN'),
-      });
-
+      const { accessToken, refreshToken: newRefreshToken } = this.generateTokens(user.id, user.email);
       await this.userService.updateRefreshToken(user.id, newRefreshToken);
 
-      this.logger.debug('Refresh token bem-sucedido');
+      this.logger.log(`Refresh token bem-sucedido para o usuário ID: ${user.id}`);
       return {
         accessToken,
         refreshToken: newRefreshToken,
@@ -93,18 +95,18 @@ export class AuthService {
   async logout(userId: string) {
     this.logger.debug(`Logout para o usuário ID: ${userId}`);
     await this.userService.updateRefreshToken(userId, null);
+    this.logger.log(`Logout bem-sucedido para o usuário ID: ${userId}`);
     return { message: 'User logged out' };
   }
 
-  async getMe(userId: string) {
+  async getMe(userId: string): Promise<Partial<User>> {
     this.logger.debug(`Buscando dados do usuário para ID: ${userId}`);
-  
     const user = await this.userService.findOne(userId);
     if (!user) {
-      this.logger.warn(`Usuário não encontrado: ${userId}`);
+      this.logger.warn(`Usuário não encontrado para ID: ${userId}`);
       throw new UnauthorizedException('User not found');
     }
-  
+
     return {
       id: user.id,
       email: user.email,
@@ -112,5 +114,4 @@ export class AuthService {
       role: user.role,
     };
   }
-  
 }

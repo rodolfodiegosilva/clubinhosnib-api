@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { BaseEntity } from 'src/share/share-entity/base.entity';
+import { Entity, Column } from 'typeorm';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -6,10 +7,7 @@ export enum UserRole {
 }
 
 @Entity('users')
-export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class User extends BaseEntity {
   @Column({ unique: true })
   email: string;
 
@@ -24,5 +22,4 @@ export class User {
 
   @Column({ nullable: true, type: 'text' })
   refreshToken: string | null;
-
 }
