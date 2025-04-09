@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RouteRepository } from './route-page.repository';
-import { Route, RouteType } from './route-page.entity';
+import { RouteEntity, RouteType } from './route-page.entity';
+import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class RouteService {
   private readonly logger = new Logger(RouteService.name);
 
-  constructor(private readonly routeRepo: RouteRepository) {}
+  constructor(private readonly routeRepo: RouteRepository) { }
 
   generateRoute(title: string, prefix: string): string {
     const route = (
@@ -41,6 +42,7 @@ export class RouteService {
 
   async createRoute(data: {
     title: string;
+    public?: boolean;
     subtitle: string;
     idToFetch: string;
     path?: string;
@@ -50,12 +52,13 @@ export class RouteService {
     type: RouteType;
     image?: string;
     prefix?: string;
-  }): Promise<Route> {
+  }): Promise<RouteEntity> {
     const path = data.path || (await this.generateAvailablePath(data.title, data.prefix || ''));
     this.logger.debug(`🛠️ Criando rota para ${data.entityType} com path: "${path}"`);
 
-    const route = new Route();
-    route.title = data.title;    
+    const route = new RouteEntity();
+    route.title = data.title;
+    route.public = data.public || true;
     route.subtitle = data.subtitle;
     route.idToFetch = data.idToFetch;
     route.path = path;
@@ -70,7 +73,7 @@ export class RouteService {
     return savedRoute;
   }
 
-  async updateRoute(id: string, updateData: Partial<Pick<Route, 'title' | 'description' | 'path' | 'subtitle'>>): Promise<Route> {
+  async updateRoute(id: string, updateData: Partial<Pick<RouteEntity, 'title' | 'description' | 'path' | 'subtitle'>>): Promise<RouteEntity> {
     this.logger.debug(`✏️ Iniciando atualização da rota ID=${id}`);
     const route = await this.routeRepo.findOne({ where: { id } });
     if (!route) {
@@ -101,12 +104,12 @@ export class RouteService {
     return updated;
   }
 
-  async findAllRoutes(): Promise<Route[]> {
+  async findAllRoutes(): Promise<RouteEntity[]> {
     this.logger.debug(`📄 Buscando todas as rotas no sistema...`);
     return this.routeRepo.find();
   }
 
-  async findById(id: string): Promise<Route | null> {
+  async findById(id: string): Promise<RouteEntity | null> {
     this.logger.debug(`🔍 Buscando rota por ID=${id}`);
     return this.routeRepo.findOne({ where: { id } });
   }
@@ -121,4 +124,68 @@ export class RouteService {
       this.logger.warn(`⚠️ Tentativa de remover rota inexistente ID=${id}`);
     }
   }
+
+  async removeRouteByEntity(entityType: string, entityId: string): Promise<void> {
+    this.logger.log(`🗑️ Removendo rota com entityType=${entityType} e entityId=${entityId}`);
+    const route = await this.routeRepo.findOne({ where: { entityType, entityId } });
+    if (route) {
+      await this.routeRepo.remove(route);
+      this.logger.log(`✅ Rota removida com sucesso: ID=${route.id}`);
+    } else {
+      this.logger.warn(`⚠️ Nenhuma rota encontrada para entityType=${entityType} e entityId=${entityId}`);
+    }
+  }
+
+  async createRouteWithManager(
+    manager: EntityManager,
+    data: {
+      title: string;
+      public?: boolean;
+      subtitle: string;
+      idToFetch: string;
+      path: string;
+      entityType: string;
+      description: string;
+      entityId: string;
+      type: RouteType;
+      image?: string;
+    }
+  ): Promise<RouteEntity> {
+    const route = manager.create(RouteEntity, {
+      title: data.title,
+      public: data.public ?? true,
+      subtitle: data.subtitle,
+      idToFetch: data.idToFetch,
+      path: data.path,
+      entityType: data.entityType,
+      description: data.description,
+      entityId: data.entityId,
+      type: data.type,
+      image: data.image || '',
+    });
+
+    return await manager.save(route);
+  }
+
+  async findRouteByEntityId(entityId: string): Promise<RouteEntity | null> {
+    this.logger.debug(`🔍 Buscando rota para entityId=${entityId}`);
+    const route = await this.routeRepo.findOne({ where: { entityId } });
+    if (!route) {
+      this.logger.warn(`⚠️ Nenhuma rota encontrada para entityId=${entityId}`);
+    }
+    return route;
+  }
+
+  async upsertRoute(routeId: string, updateData: Partial<RouteEntity>): Promise<RouteEntity> {
+    // Gerar o novo path para a rota
+    const path = this.generateRoute(updateData.title || '', updateData.path || '');
+    updateData.path = path;
+    
+    this.logger.debug(`🛠️ Iniciando upsert da rota ID=${routeId} com path: "${path}"`);
+    
+    // Chama o upsert do repositório
+    return this.routeRepo.upsertRoute(routeId, updateData);
+  }
+  
+
 }

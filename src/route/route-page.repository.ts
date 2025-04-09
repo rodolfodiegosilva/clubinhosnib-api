@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
-import { Route, RouteType } from './route-page.entity';
+import { RouteEntity, RouteType } from './route-page.entity';
 
 @Injectable()
-export class RouteRepository extends Repository<Route> {
+export class RouteRepository extends Repository<RouteEntity> {
   constructor(private readonly dataSource: DataSource) {
-    super(Route, dataSource.createEntityManager());
+    super(RouteEntity, dataSource.createEntityManager());
   }
 
-  async findAllRoutes(): Promise<Route[]> {
+  async findAllRoutes(): Promise<RouteEntity[]> {
     return this.find();
   }
 
-  async findById(id: string): Promise<Route | null> {
+  async findById(id: string): Promise<RouteEntity | null> {
     return this.findOne({ where: { id } });
   }
 
@@ -23,15 +23,15 @@ export class RouteRepository extends Repository<Route> {
     }
   }
 
-  async findByPath(path: string): Promise<Route | null> {
+  async findByPath(path: string): Promise<RouteEntity | null> {
     return this.findOne({ where: { path } });
   }
 
-  async findByEntity(entityType: string, entityId: string): Promise<Route | null> {
+  async findByEntity(entityType: string, entityId: string): Promise<RouteEntity | null> {
     return this.findOne({ where: { entityType, entityId } });
   }
 
-  async createRoute(path: string, entityType: string, entityId: string, description: string, type: RouteType): Promise<Route> {
+  async createRoute(path: string, entityType: string, entityId: string, description: string, type: RouteType): Promise<RouteEntity> {
     const route = this.create({
       path,
       entityType,
@@ -41,4 +41,18 @@ export class RouteRepository extends Repository<Route> {
     });
     return this.save(route);
   }
+
+  async upsertRoute(routeId: string, updateData: Partial<RouteEntity>): Promise<RouteEntity> {
+    // Atualiza ou insere a rota com base no `id`
+    const route = await this.save({
+      ...updateData,  // Propaga os dados de atualização
+      id: routeId,  // Garantimos que o ID será o fornecido
+    });
+  
+    //this.logger.debug(`🛠️ Rota atualizada/criada com ID=${route.id}`);
+    
+    return route;
+  }
+  
+  
 }

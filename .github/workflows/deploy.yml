@@ -76,18 +76,23 @@ jobs:
       - name: Run new container
         run: |
           sudo docker run -d -p 3000:3000 \
-            -e PORT=3000 \
             -e DB_HOST=${{ secrets.DB_HOST }} \
             -e DB_PORT=${{ secrets.DB_PORT }} \
             -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
             -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -e DB_NAME=${{ secrets.DB_NAME }} \
-            -e AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }} \
             -e AWS_REGION=${{ secrets.AWS_REGION }} \
             -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            -e AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }} \
+            -e SES_DEFAULT_FROM=${{ secrets.SES_DEFAULT_FROM }} \
+            -e SES_DEFAULT_TO=${{ secrets.SES_DEFAULT_TO }} \
             -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
             -e JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }} \
             -e JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }} \
             -e JWT_REFRESH_EXPIRES_IN=${{ secrets.JWT_REFRESH_EXPIRES_IN }} \
+            -e TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }} \
+            -e TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }} \
+            -e TWILIO_WHATSAPP_FROM=${{ secrets.TWILIO_WHATSAPP_FROM }} \
+            -e TWILIO_WHATSAPP_TO=${{ secrets.TWILIO_WHATSAPP_TO }} \
             --name clubinho-api diegoseven/clubinho-api:latest

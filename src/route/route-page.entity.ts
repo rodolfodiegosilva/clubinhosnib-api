@@ -1,10 +1,5 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { BaseEntity } from 'src/share/share-entity/base.entity';
+import { Entity, Column } from 'typeorm';
 
 export enum RouteType {
   PAGE = 'page',
@@ -13,16 +8,16 @@ export enum RouteType {
 }
 
 @Entity('routes')
-export class Route {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class RouteEntity extends BaseEntity {
   @Column()
   title: string;
 
   @Column()
   subtitle: string;
 
+  @Column({ default: true })
+  public: boolean;
+  
   @Column({ type: 'varchar', nullable: true })
   image: string;
 
@@ -43,10 +38,4 @@ export class Route {
 
   @Column({ type: 'enum', enum: RouteType })
   type: RouteType;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }

@@ -1,28 +1,31 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { GalleryModule } from './gallery/gallery.module';
 import { RouteModule } from './route/route.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { AwsModule } from './aws/aws.module';
 import { DatabaseModule } from '../database/database.module';
-import { VideosPageModule } from './video-page/video-page.module';
-import { StudyMaterialsPageModule } from './study-material-page/study-material-page.module';
+import { MeditationModule } from './meditation/meditation.module';
+import { ImageModule } from './pages/image-page/image-page.module';
+import { VideosPageModule } from './pages/video-page/video-page.module';
+import { WeekMaterialsPageModule } from './pages/week-material-page/week-material-page.module';
+import { ContactModule } from './contact/contact.module';
+import { EventModule } from './pages/event-page/event.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
     AwsModule,
-    GalleryModule,
+    ImageModule,
     RouteModule,
     UserModule,
     AuthModule,
-    RouteModule,
     VideosPageModule,
-    StudyMaterialsPageModule 
+    WeekMaterialsPageModule,
+    MeditationModule,
+    ContactModule,
+    EventModule
   ],
 })
-export class AppModule { }
+export class AppModule {}

@@ -23,7 +23,6 @@ export class AuthController {
     return this.authService.logout(req.user.userId);
   }
 
-  // 👇 Endpoint GET /me protegido por JwtAuthGuard
   @UseGuards(JwtAuthGuard)
   @Get('me')
   getMe(@Request() req) {
