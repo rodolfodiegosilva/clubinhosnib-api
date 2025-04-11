@@ -10,7 +10,7 @@ import { RouteEntity } from 'src/route/route-page.entity';
 import { User } from 'src/user/user.entity';
 import { VideosPage } from 'src/pages/video-page/entities/video-page.entity';
 
-import { WeekMaterialsPageEntity } from 'src/pages/week-material-page/entities/week-material-page.entity/week-material-page.entity';
+import { WeekMaterialsPageEntity } from 'src/pages/week-material-page/entities/week-material-page.entity';
 import { MediaItemEntity } from 'src/share/media/media-item/media-item.entity';
 import { ContactEntity } from 'src/contact/contact.entity';
 import { EventEntity } from 'src/pages/event-page/entities/event.entity';

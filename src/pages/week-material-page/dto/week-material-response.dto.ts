@@ -1,5 +1,5 @@
 import { RouteType } from 'src/route/route-page.entity';
-import { WeekMaterialsPageEntity } from '../entities/week-material-page.entity/week-material-page.entity';
+import { WeekMaterialsPageEntity } from '../entities/week-material-page.entity';
 import { Logger } from '@nestjs/common';
 import { MediaItemEntity, MediaPlatform, MediaType, MediaUploadType } from 'src/share/media/media-item/media-item.entity';
 

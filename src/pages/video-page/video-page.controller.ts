@@ -20,7 +20,7 @@ import { UpdateVideosPageDto } from './dto/update-videos-page.dto';
 import { VideosPageResponseDto } from './dto/videos-page-response.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { CreateVideosPageDto } from './dto/creta-videos-page.dto';
+import { CreateVideosPageDto } from './dto/create-videos-page.dto';
 
 @Controller('video-pages')
 export class VideosPageController {

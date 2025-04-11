@@ -14,13 +14,11 @@ import {
   } from 'src/share/media/media-item/media-item.entity';
   
   class VideoItemDto {
-    @IsOptional()
     @IsString({ message: 'O campo "title" deve ser uma string.' })
-    title?: string;
+    title: string;
   
-    @IsOptional()
     @IsString({ message: 'O campo "description" deve ser uma string.' })
-    description?: string;
+    description: string;
   
     @IsEnum(MediaUploadType, { message: 'O campo "type" deve ser "upload" ou "link".' })
     type: MediaUploadType;

@@ -8,7 +8,7 @@ import { VideosPage } from './entities/video-page.entity';
 import { MediaItemEntity, MediaType, MediaUploadType, MediaPlatform } from 'src/share/media/media-item/media-item.entity';
 import { MediaItemProcessor } from 'src/share/media/media-item-processor';
 import { VideosPageResponseDto } from './dto/videos-page-response.dto';
-import { CreateVideosPageDto } from './dto/creta-videos-page.dto';
+import { CreateVideosPageDto } from './dto/create-videos-page.dto';
 import { UpdateVideosPageDto } from './dto/update-videos-page.dto';
 
 @Injectable()
