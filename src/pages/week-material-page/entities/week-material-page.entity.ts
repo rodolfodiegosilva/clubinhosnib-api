@@ -20,7 +20,4 @@ export class WeekMaterialsPageEntity extends BaseEntity {
   })
   @JoinColumn()
   route: RouteEntity;
-
-  // ❌ A relação com `WeekMediaItem` foi removida
-  // ✅ Os itens agora são acessados por query com base em targetId/targetType
 }

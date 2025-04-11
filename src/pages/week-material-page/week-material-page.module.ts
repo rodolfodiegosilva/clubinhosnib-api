@@ -1,26 +1,29 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-
 import { WeekMaterialsPageRepository } from './week-material.repository';
-import { WeekMaterialsPageEntity } from './entities/week-material-page.entity/week-material-page.entity';
+import { WeekMaterialsPageEntity } from './entities/week-material-page.entity';
 import { RouteModule } from 'src/route/route.module';
-import { WeekMaterialsPageController } from './week-material-page.controller';
-import { WeekMaterialsPageService } from './week-material-page.service';
 import { MediaModule } from 'src/share/media/media.module';
-
+import { WeekMaterialsPageController } from './week-material-page.controller';
+import { WeekMaterialsPageCreateService } from './services/WeekMaterialsPageCreateService';
+import { WeekMaterialsPageUpdateService } from './services/WeekMaterialsPageUpdateService';
+import { WeekMaterialsPageRemoveService } from './services/WeekMaterialsPageRemoveService';
+import { WeekMaterialsPageGetService } from './services/WeekMaterialsPageGetService';
 @Module({
   imports: [
     TypeOrmModule.forFeature([WeekMaterialsPageEntity]),
     RouteModule,
-    MediaModule
+    MediaModule,
   ],
   controllers: [WeekMaterialsPageController],
   providers: [
-    WeekMaterialsPageEntity,
     WeekMaterialsPageRepository,
-    WeekMaterialsPageService
+    WeekMaterialsPageCreateService,
+    WeekMaterialsPageUpdateService,
+    WeekMaterialsPageRemoveService,
+    WeekMaterialsPageGetService,
   ],
-  exports: [WeekMaterialsPageEntity],
+  exports: [TypeOrmModule], // Exporta o TypeOrmModule para uso em outros módulos, se necessário
 })
 export class WeekMaterialsPageModule {}
