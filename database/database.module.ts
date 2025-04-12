@@ -14,6 +14,7 @@ import { WeekMaterialsPageEntity } from 'src/pages/week-material-page/entities/w
 import { MediaItemEntity } from 'src/share/media/media-item/media-item.entity';
 import { ContactEntity } from 'src/contact/contact.entity';
 import { EventEntity } from 'src/pages/event-page/entities/event.entity';
+import { CommentEntity } from 'src/comment/entity/comment.entity';
 ;
 
 @Module({
@@ -33,7 +34,20 @@ import { EventEntity } from 'src/pages/event-page/entities/event.entity';
           username: configService.get<string>('DB_USERNAME', 'root'),
           password: configService.get<string>('DB_PASSWORD', ''),
           database: configService.get<string>('DB_NAME', 'test'),
-          entities: [EventEntity,ImagePageEntity, ImageSectionEntity, RouteEntity, User, VideosPage, WeekMaterialsPageEntity, MeditationEntity, DayEntity, MediaItemEntity,ContactEntity],
+          entities: [
+            EventEntity,
+            ImagePageEntity,
+            ImageSectionEntity,
+            RouteEntity,
+            User,
+            VideosPage,
+            WeekMaterialsPageEntity,
+            MeditationEntity,
+            DayEntity,
+            MediaItemEntity,
+            ContactEntity,
+            CommentEntity
+          ],
           synchronize: true,
         };
 
