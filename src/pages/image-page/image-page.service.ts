@@ -17,6 +17,7 @@ import { MediaItemProcessor } from 'src/share/media/media-item-processor';
 import { MediaItemEntity } from 'src/share/media/media-item/media-item.entity';
 import { ImageSectionRepository } from './repository/image-section.repository';
 import { UpdateImagePageDto, UpdateMediaItemDto, UpdateSectionDto } from './dto/update-image.dto';
+import { MediaTargetType } from 'src/share/media/media-target-type.enum';
 
 @Injectable()
 export class ImageService {
@@ -57,7 +58,7 @@ export class ImageService {
         subtitle: 'Página de galeria de imagens',
         idToFetch: savedGallery.id,
         path,
-        entityType: 'ImagePageEntity',
+        entityType: 'ImagesPage',
         description,
         entityId: savedGallery.id,
         type: RouteType.PAGE,
@@ -100,7 +101,7 @@ export class ImageService {
         const mediaItems = await this.mediaItemProcessor.processMediaItemsPolymorphic(
           mediaItemsPrepared,
           savedSection.id,
-          'ImageSectionEntity',
+          MediaTargetType.ImagesPage,
           filesDict,
           this.awsS3Service.upload.bind(this.awsS3Service),
         );
@@ -341,17 +342,19 @@ export class ImageService {
       title: pageData.title,
       subtitle: 'Página de galeria de imagens',
       idToFetch: imagePageId,
-      entityType: 'ImagePageEntity',
+      entityType: 'ImagesPage',
       entityId: imagePageId,
       public: pageData.public,
       type: RouteType.PAGE,
       description: pageData.description,
       path: 'galeria_imagens_',
+      image: 'https://bucket-clubinho-galeria.s3.us-east-2.amazonaws.com/uploads/img_card.jpg'
     };
     const savedRoute = await this.routeService.upsertRoute(routeId, routeData);
     this.logger.debug(`✅ Rota upsertada: ${savedRoute.id}`);
     return savedRoute;
   }
+  
   async processSectionMedia(
     mediaItems: UpdateMediaItemDto[],
     sectionId: string,

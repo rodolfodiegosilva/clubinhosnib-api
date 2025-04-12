@@ -21,7 +21,7 @@ export class WeekMaterialsPageCreateService {
     private readonly s3: AwsS3Service,
     private readonly routeService: RouteService,
     private readonly mediaItemProcessor: MediaItemProcessor,
-  ) {}
+  ) { }
 
   async createWeekMaterialsPage(
     dto: CreateWeekMaterialsPageDto,
@@ -37,7 +37,6 @@ export class WeekMaterialsPageCreateService {
     let mediaItems: MediaItemEntity[] = [];
 
     try {
-      // Criar a página
       const page = queryRunner.manager.create(WeekMaterialsPageEntity, {
         title: dto.pageTitle,
         subtitle: dto.pageSubtitle,
@@ -46,8 +45,7 @@ export class WeekMaterialsPageCreateService {
       savedPage = await queryRunner.manager.save(page);
       this.logger.debug(`💾 Página salva. ID=${savedPage.id}`);
 
-      // Criar a rota
-      const path = await this.routeService.generateAvailablePath(dto.pageTitle, 'semana_');
+      const path = await this.routeService.generateAvailablePath(dto.pageTitle, 'materiais_semanal');
       const route = await this.routeService.createRouteWithManager(queryRunner.manager, {
         title: dto.pageTitle,
         subtitle: dto.pageSubtitle,
@@ -57,15 +55,14 @@ export class WeekMaterialsPageCreateService {
         entityId: savedPage.id,
         idToFetch: savedPage.id,
         entityType: 'WeekMaterialsPage',
-        image: '',
+        image: 'https://bucket-clubinho-galeria.s3.us-east-2.amazonaws.com/uploads/img_card.jpg',
+        public: false
       });
       this.logger.debug(`🛤️ Rota criada. ID=${route.id}`);
 
-      // Associar a rota à página
       savedPage.route = route;
       await queryRunner.manager.save(savedPage);
 
-      // Processar mídias com tipo correto
       const adjustedMediaItems = this.mergeAndFixMedia({
         videos: dto.videos || [],
         documents: dto.documents || [],
@@ -101,7 +98,7 @@ export class WeekMaterialsPageCreateService {
     images: any[];
     audios: any[];
   }): any[] {
-    // Mapear itens com seus respectivos mediaTypes
+
     const videos = (dto.videos || []).map((item) => ({
       ...item,
       mediaType: MediaType.VIDEO,
@@ -123,10 +120,8 @@ export class WeekMaterialsPageCreateService {
       fileField: item.type === 'upload' && item.isLocalFile ? item.fieldKey : undefined,
     }));
 
-    // Combinar todos os itens
     const mediaItems = [...videos, ...documents, ...images, ...audios];
 
-    // Validar itens de upload
     mediaItems.forEach((item) => {
       if (item.type === 'upload' && item.isLocalFile && !item.fileField) {
         throw new BadRequestException(`fieldKey ausente para item de mídia: ${item.title}`);

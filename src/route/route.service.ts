@@ -177,15 +177,12 @@ export class RouteService {
   }
 
   async upsertRoute(routeId: string, updateData: Partial<RouteEntity>): Promise<RouteEntity> {
-    // Gerar o novo path para a rota
+
     const path = this.generateRoute(updateData.title || '', updateData.path || '');
     updateData.path = path;
-    
+
     this.logger.debug(`🛠️ Iniciando upsert da rota ID=${routeId} com path: "${path}"`);
-    
-    // Chama o upsert do repositório
+
     return this.routeRepo.upsertRoute(routeId, updateData);
   }
-  
-
 }

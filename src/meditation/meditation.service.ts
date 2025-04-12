@@ -141,7 +141,8 @@ export class MeditationService {
         entityId: savedMeditation.id,
         type: RouteType.DOC,
         prefix: 'meditacao_',
-        image: '',
+        image: 'https://bucket-clubinho-galeria.s3.us-east-2.amazonaws.com/uploads/img_card.jpg',
+        public: true,
       });
   
       this.logger.log(`✅ Rota criada com sucesso: path=${route.path}`);
@@ -155,13 +156,6 @@ export class MeditationService {
       );
     }
   }
-  
-  
-  
-  
-  
-  
-
 
   async update(
     id: string,
@@ -244,8 +238,6 @@ export class MeditationService {
       return savedMeditation;
     });
   }
-
-
 
   async findAll(): Promise<WeekMeditationResponseDto[]> {
     this.logger.debug('📦 Buscando todas as meditações com mídias...');

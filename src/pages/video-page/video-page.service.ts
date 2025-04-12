@@ -10,6 +10,7 @@ import { MediaItemProcessor } from 'src/share/media/media-item-processor';
 import { VideosPageResponseDto } from './dto/videos-page-response.dto';
 import { CreateVideosPageDto } from './dto/create-videos-page.dto';
 import { UpdateVideosPageDto } from './dto/update-videos-page.dto';
+import { MediaTargetType } from 'src/share/media/media-target-type.enum';
 
 @Injectable()
 export class VideosPageService {
@@ -23,7 +24,6 @@ export class VideosPageService {
     private readonly mediaItemProcessor: MediaItemProcessor,
   ) {}
 
-  /** Cria uma nova página de vídeos */
   async createVideosPage(
     dto: CreateVideosPageDto,
     filesDict: Record<string, Express.Multer.File>,
@@ -36,7 +36,6 @@ export class VideosPageService {
     await queryRunner.startTransaction();
 
     try {
-      // Criação da página
       const newPage = queryRunner.manager.create(VideosPage, {
         name: title,
         description,
@@ -44,7 +43,6 @@ export class VideosPageService {
       });
       const savedPage = await queryRunner.manager.save(newPage);
 
-      // Criação da rota
       const path = await this.routeService.generateAvailablePath(title, 'videos_');
       const route = await this.routeService.createRouteWithManager(queryRunner.manager, {
         title,
@@ -60,7 +58,6 @@ export class VideosPageService {
 
       savedPage.route = route;
 
-      // Processamento dos itens de mídia
       const mediaItems = await this.mediaItemProcessor.processMediaItemsPolymorphic(
         videos.map((video) => ({
           ...video,
@@ -70,7 +67,7 @@ export class VideosPageService {
           fileField: video.fieldKey,
         })),
         savedPage.id,
-        'VideosPage',
+        MediaTargetType.VideosPage,
         filesDict,
         this.awsS3Service.upload.bind(this.awsS3Service),
       );
@@ -87,7 +84,6 @@ export class VideosPageService {
     }
   }
 
-  /** Atualiza uma página de vídeos existente */
   async updateVideosPage(
     id: string,
     dto: UpdateVideosPageDto,
@@ -128,7 +124,6 @@ export class VideosPageService {
     }
   }
 
-  /** Lista todas as páginas de vídeos */
   async findAllPages(): Promise<VideosPageResponseDto[]> {
     this.logger.debug('📡 Listando todas as páginas de vídeos...');
     const pages = await this.videosPageRepo.findAll();
@@ -144,7 +139,6 @@ export class VideosPageService {
     return pages.map((page) => VideosPageResponseDto.fromEntity(page, mediaMap.get(page.id) || []));
   }
 
-  /** Busca uma única página de vídeos por ID */
   async findOnePage(id: string): Promise<VideosPageResponseDto> {
     this.logger.debug(`📡 Buscando página de vídeos ID=${id}...`);
     const page = await this.videosPageRepo.findById(id);
@@ -154,7 +148,6 @@ export class VideosPageService {
     return VideosPageResponseDto.fromEntity(page, mediaItems);
   }
 
-  /** Remove uma página de vídeos */
   async removePage(id: string): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -183,7 +176,6 @@ export class VideosPageService {
     }
   }
 
-  // Métodos auxiliares
 
   private async validateVideosPage(id: string): Promise<VideosPage> {
     const page = await this.videosPageRepo.findById(id);
@@ -249,6 +241,7 @@ export class VideosPageService {
       type: RouteType.PAGE,
       description: dto.description,
       path: await this.routeService.generateAvailablePath(dto.title, 'videos_'),
+      image:'https://bucket-clubinho-galeria.s3.us-east-2.amazonaws.com/uploads/img_card.jpg'
     };
     const savedRoute = await this.routeService.upsertRoute(routeId, routeData);
     this.logger.debug(`✅ Rota upsertada: ${savedRoute.id}`);
