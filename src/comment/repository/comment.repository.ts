@@ -21,8 +21,8 @@ export class CommentRepository extends Repository<CommentEntity> {
     });
   }
   async findAll(): Promise<CommentEntity[]> {
-    return this.find({       where: { published: false },order: { createdAt: 'DESC' } });
-  }  
+    return this.find({ order: { createdAt: 'DESC' } });
+  }
 
   async findById(id: string): Promise<CommentEntity | null> {
     return this.findOneBy({ id });
