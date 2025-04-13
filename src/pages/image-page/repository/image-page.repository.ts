@@ -8,9 +8,6 @@ export class ImagePageRepository extends Repository<ImagePageEntity> {
     super(ImagePageEntity, dataSource.createEntityManager());
   }
 
-  /**
-   * Busca uma galeria por ID com suas seções.
-   */
   async findByIdWithSections(id: string): Promise<ImagePageEntity | null> {
     return this.findOne({
       where: { id },
@@ -18,9 +15,6 @@ export class ImagePageRepository extends Repository<ImagePageEntity> {
     });
   }
 
-  /**
-   * Retorna todas as galerias com suas seções.
-   */
   async findAllWithSections(): Promise<ImagePageEntity[]> {
     return this.find({
       relations: ['sections'],
@@ -28,10 +22,6 @@ export class ImagePageRepository extends Repository<ImagePageEntity> {
     });
   }
 
-  /**
-   * Upsert: atualiza se tiver ID, cria novo se não tiver.
-   * @param data dados da galeria
-   */
   async upsertGallery(data: Partial<ImagePageEntity>): Promise<ImagePageEntity> {
     if (data.id) {
       const existing = await this.preload(data);
@@ -40,7 +30,6 @@ export class ImagePageRepository extends Repository<ImagePageEntity> {
       }
       return this.save(existing);
     }
-
     const created = this.create(data);
     return this.save(created);
   }

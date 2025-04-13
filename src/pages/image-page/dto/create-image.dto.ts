@@ -50,16 +50,15 @@ class MediaItemDto {
   @IsEnum(MediaType, { message: 'O campo "mediaType" deve conter um tipo de mídia válido.' })
   mediaType?: MediaType;
 
-  @IsString( { message: 'O campo "fieldKey" é obrigatório e deve ser uma string.' })
-  fieldKey : string;
+  @IsString({ message: 'O campo "fieldKey" é obrigatório e deve ser uma string.' })
+  fieldKey: string;
 
-  // Ignorado da validação (necessário para uso com whitelist: true)
   @ValidateIf(() => false)
   file?: any;
 }
 
 class SectionDto {
-  
+
   @IsString({ message: 'O campo "caption" da seção deve ser uma string.' })
   caption: string;
 
