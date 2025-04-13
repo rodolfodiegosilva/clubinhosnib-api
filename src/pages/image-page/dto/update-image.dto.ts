@@ -83,7 +83,7 @@ export class UpdateSectionDto {
 export class UpdateImagePageDto {
 
     @IsString({ message: 'O campo "id" da galeria deve ser uma string.' })
-    id: string; // Campo id obrigatório
+    id: string;
 
     @IsString({ message: 'O campo "title" da galeria deve ser uma string.' })
     title: string;
@@ -97,5 +97,5 @@ export class UpdateImagePageDto {
     @IsArray({ message: 'O campo "sections" deve ser um array.' })
     @ValidateNested({ each: true })
     @Type(() => UpdateSectionDto)
-    sections: UpdateSectionDto[]; // Seções como array de UpdateSectionDto
+    sections: UpdateSectionDto[];
 }

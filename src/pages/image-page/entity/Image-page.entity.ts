@@ -34,5 +34,4 @@ export class ImagePageEntity extends BaseEntity {
     onDelete: 'CASCADE',
   })
   sections: ImageSectionEntity[];
-
 }

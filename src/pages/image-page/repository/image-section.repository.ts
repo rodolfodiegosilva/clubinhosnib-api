@@ -10,11 +10,11 @@ export class ImageSectionRepository extends Repository<ImageSectionEntity> {
 
   async findByPageId(pageId: string): Promise<ImageSectionEntity[]> {
     return this.find({
-      where: { page: { id: pageId } },  // Filtra as seções pela página associada
-      relations: ['page'],  // Carrega as relações, no caso, a página associada à seção
+      where: { page: { id: pageId } },
+      relations: ['page'],
     });
   }
-  
+
 
   async upsertSection(sectionData: Partial<ImageSectionEntity>): Promise<ImageSectionEntity> {
     if (sectionData.id) {
