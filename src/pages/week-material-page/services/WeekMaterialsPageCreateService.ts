@@ -45,7 +45,7 @@ export class WeekMaterialsPageCreateService {
       savedPage = await queryRunner.manager.save(page);
       this.logger.debug(`💾 Página salva. ID=${savedPage.id}`);
 
-      const path = await this.routeService.generateAvailablePath(dto.pageTitle, 'materiais_semanal');
+      const path = await this.routeService.generateAvailablePath(dto.pageTitle, 'materiais_semanal_');
       const route = await this.routeService.createRouteWithManager(queryRunner.manager, {
         title: dto.pageTitle,
         subtitle: dto.pageSubtitle,

@@ -206,7 +206,7 @@ export class ImageService {
   }
 
   async validateMedia(sectionIds: string[]): Promise<MediaItemEntity[]> {
-    const media = await this.mediaItemProcessor.findManyMediaItemsByTargets(sectionIds, 'ImageSectionEntity');
+    const media = await this.mediaItemProcessor.findManyMediaItemsByTargets(sectionIds, 'ImagesPage');
     if (!media || media.length === 0) {
       throw new NotFoundException('Mídias associadas à galeria não encontradas');
     }
@@ -284,7 +284,7 @@ export class ImageService {
     filesDict: Record<string, Express.Multer.File>,
     queryRunner: QueryRunner
   ): Promise<MediaItemEntity> {
-    const media = this.mediaItemProcessor.buildBaseMediaItem(mediaInput, targetId, 'ImageSectionEntity');
+    const media = this.mediaItemProcessor.buildBaseMediaItem(mediaInput, targetId, 'ImagesPage');
     if (mediaInput.isLocalFile) {
       const file = filesDict[mediaInput.fieldKey || mediaInput.url];
       if (!file) throw new Error(`Arquivo ausente para upload: ${mediaInput.fieldKey || mediaInput.url}`);
@@ -320,7 +320,7 @@ export class ImageService {
     filesDict: Record<string, Express.Multer.File>,
     queryRunner: QueryRunner
   ): Promise<MediaItemEntity> {
-    const media = this.mediaItemProcessor.buildBaseMediaItem(mediaInput, targetId, 'ImageSectionEntity');
+    const media = this.mediaItemProcessor.buildBaseMediaItem(mediaInput, targetId, 'ImagesPage');
     if (mediaInput.isLocalFile && !mediaInput.id) {
       const file = filesDict[mediaInput.fieldKey || mediaInput.url];
       if (!file) throw new Error(`Arquivo ausente para upload: ${mediaInput.fieldKey || mediaInput.url}`);
@@ -385,7 +385,7 @@ export class ImageService {
 
       const sectionIds = page.sections?.map((s) => s.id) || [];
       if (sectionIds.length > 0) {
-        const media = await this.mediaItemProcessor.findManyMediaItemsByTargets(sectionIds, 'ImageSectionEntity');
+        const media = await this.mediaItemProcessor.findManyMediaItemsByTargets(sectionIds, 'ImagesPage');
         await this.mediaItemProcessor.deleteMediaItems(media, this.awsS3Service.delete.bind(this.awsS3Service));
       }
 
@@ -407,7 +407,7 @@ export class ImageService {
   async findAll(): Promise<ImagePageResponseDto[]> {
     const pages = await this.imagePageRepository.findAllWithSections();
     const sectionIds = pages.flatMap((page) => page.sections.map((s) => s.id));
-    const mediaItems = await this.mediaItemProcessor.findManyMediaItemsByTargets(sectionIds, 'ImageSectionEntity');
+    const mediaItems = await this.mediaItemProcessor.findManyMediaItemsByTargets(sectionIds, 'ImagesPage');
 
     const mediaMap = new Map<string, MediaItemEntity[]>();
     for (const item of mediaItems) {
@@ -424,7 +424,7 @@ export class ImageService {
     if (!page.route) throw new NotFoundException(`A galeria com id ${id} não possui rota associada.`);
 
     const sectionIds = page.sections.map((s) => s.id);
-    const media = await this.mediaItemProcessor.findManyMediaItemsByTargets(sectionIds, 'ImageSectionEntity');
+    const media = await this.mediaItemProcessor.findManyMediaItemsByTargets(sectionIds, 'ImagesPage');
 
     const mediaMap = new Map<string, MediaItemEntity[]>();
     for (const item of media) {

@@ -39,56 +39,56 @@ export class WeekMaterialsPageUpdateService {
     await queryRunner.startTransaction();
 
     try {
-      const page = await this.validatePage(id, queryRunner);
-      const route = await this.validateRoute(page.id, queryRunner);
-      const existingVideos = await this.validateVideoMedia(page.id, queryRunner);
-      const existingDocuments = await this.validateDocumentMedia(page.id, queryRunner);
-      const existingImages = await this.validateImageMedia(page.id, queryRunner);
-      const existingAudios = await this.validateAudioMedia(page.id, queryRunner);
+      const existingPage = await this.validatePage(id, queryRunner);
+      const existingRoute = await this.validateRoute(existingPage.id);
+      const existingVideos = await this.validateVideoMedia(existingPage.id);
+      const existingDocuments = await this.validateDocumentMedia(existingPage.id);
+      const existingImages = await this.validateImageMedia(existingPage.id);
+      const existingAudios = await this.validateAudioMedia(existingPage.id);
 
       const { pageTitle, pageSubtitle, pageDescription, videos, documents, images, audios } = dto;
       this.logger.debug(`📋 Dados extraídos: title="${pageTitle}", subtitle="${pageSubtitle}", vídeos=${videos?.length || 0}, documentos=${documents?.length || 0}, imagens=${images?.length || 0}, áudios=${audios?.length || 0}`);
 
-      await this.deleteVideoMedia(existingVideos, videos, queryRunner);
-      await this.deleteDocumentMedia(existingDocuments, documents, queryRunner);
-      await this.deleteImageMedia(existingImages, images, queryRunner);
-      await this.deleteAudioMedia(existingAudios, audios, queryRunner);
+      await this.deleteVideoMedia(existingVideos, videos);
+      await this.deleteDocumentMedia(existingDocuments, documents);
+      await this.deleteImageMedia(existingImages, images);
+      await this.deleteAudioMedia(existingAudios, audios);
 
       for (const video of videos || []) {
         if (video.id) {
-          await this.upsertVideoMedia(video, page.id, filesDict, queryRunner);
+          await this.upsertVideoMedia(video, existingPage.id, filesDict, queryRunner);
         } else {
-          await this.addVideoMedia(video, page.id, filesDict, queryRunner);
+          await this.addVideoMedia(video, existingPage.id, filesDict, queryRunner);
         }
       }
       for (const document of documents || []) {
         if (document.id) {
-          await this.upsertDocumentMedia(document, page.id, filesDict, queryRunner);
+          await this.upsertDocumentMedia(document, existingPage.id, filesDict, queryRunner);
         } else {
-          await this.addDocumentMedia(document, page.id, filesDict, queryRunner);
+          await this.addDocumentMedia(document, existingPage.id, filesDict, queryRunner);
         }
       }
       for (const image of images || []) {
         if (image.id) {
-          await this.upsertImageMedia(image, page.id, filesDict, queryRunner);
+          await this.upsertImageMedia(image, existingPage.id, filesDict, queryRunner);
         } else {
-          await this.addImageMedia(image, page.id, filesDict, queryRunner);
+          await this.addImageMedia(image, existingPage.id, filesDict, queryRunner);
         }
       }
       for (const audio of audios || []) {
         if (audio.id) {
-          await this.upsertAudioMedia(audio, page.id, filesDict, queryRunner);
+          await this.upsertAudioMedia(audio, existingPage.id, filesDict, queryRunner);
         } else {
-          await this.addAudioMedia(audio, page.id, filesDict, queryRunner);
+          await this.addAudioMedia(audio, existingPage.id, filesDict, queryRunner);
         }
       }
 
-      await this.upsertRoute(route.id, { pageTitle, pageSubtitle, pageDescription }, page.id);
+      await this.upsertRoute(existingRoute.id, { pageTitle, pageSubtitle, pageDescription }, existingPage.id);
 
-      page.title = pageTitle;
-      page.subtitle = pageSubtitle;
-      page.description = pageDescription;
-      const updatedPage = await queryRunner.manager.save(WeekMaterialsPageEntity, page);
+      existingPage.title = pageTitle;
+      existingPage.subtitle = pageSubtitle;
+      existingPage.description = pageDescription;
+      const updatedPage = await queryRunner.manager.save(WeekMaterialsPageEntity, existingPage);
 
       await queryRunner.commitTransaction();
       this.logger.debug(`✅ Página atualizada com sucesso. ID=${updatedPage.id}`);
@@ -139,7 +139,7 @@ export class WeekMaterialsPageUpdateService {
     return page;
   }
 
-  private async validateRoute(entityId: string, queryRunner: QueryRunner): Promise<RouteEntity> {
+  private async validateRoute(entityId: string): Promise<RouteEntity> {
     this.logger.debug(`🔍 Buscando rota para entityId=${entityId}`);
     const route = await this.routeService.findRouteByEntityId(entityId);
     if (!route) {
@@ -150,7 +150,7 @@ export class WeekMaterialsPageUpdateService {
     return route;
   }
 
-  private async validateVideoMedia(pageId: string, queryRunner: QueryRunner): Promise<MediaItemEntity[]> {
+  private async validateVideoMedia(pageId: string): Promise<MediaItemEntity[]> {
     this.logger.debug(`🔍 Buscando vídeos para página ID=${pageId}`);
     const items = await this.mediaItemProcessor.findMediaItemsByTarget(pageId, MediaTargetType.WeekMaterialsPage);
     const videos = items.filter(item => item.mediaType === MediaType.VIDEO);
@@ -158,7 +158,7 @@ export class WeekMaterialsPageUpdateService {
     return videos;
   }
 
-  private async validateDocumentMedia(pageId: string, queryRunner: QueryRunner): Promise<MediaItemEntity[]> {
+  private async validateDocumentMedia(pageId: string): Promise<MediaItemEntity[]> {
     this.logger.debug(`🔍 Buscando documentos para página ID=${pageId}`);
     const items = await this.mediaItemProcessor.findMediaItemsByTarget(pageId, MediaTargetType.WeekMaterialsPage);
     const documents = items.filter(item => item.mediaType === MediaType.DOCUMENT);
@@ -166,7 +166,7 @@ export class WeekMaterialsPageUpdateService {
     return documents;
   }
 
-  private async validateImageMedia(pageId: string, queryRunner: QueryRunner): Promise<MediaItemEntity[]> {
+  private async validateImageMedia(pageId: string): Promise<MediaItemEntity[]> {
     this.logger.debug(`🔍 Buscando imagens para página ID=${pageId}`);
     const items = await this.mediaItemProcessor.findMediaItemsByTarget(pageId, MediaTargetType.WeekMaterialsPage);
     const images = items.filter(item => item.mediaType === MediaType.IMAGE);
@@ -174,7 +174,7 @@ export class WeekMaterialsPageUpdateService {
     return images;
   }
 
-  private async validateAudioMedia(pageId: string, queryRunner: QueryRunner): Promise<MediaItemEntity[]> {
+  private async validateAudioMedia(pageId: string): Promise<MediaItemEntity[]> {
     this.logger.debug(`🔍 Buscando áudios para página ID=${pageId}`);
     const items = await this.mediaItemProcessor.findMediaItemsByTarget(pageId, MediaTargetType.WeekMaterialsPage);
     const audios = items.filter(item => item.mediaType === MediaType.AUDIO);
@@ -185,7 +185,6 @@ export class WeekMaterialsPageUpdateService {
   private async deleteVideoMedia(
     existingVideos: MediaItemEntity[],
     incomingVideos: any[],
-    queryRunner: QueryRunner,
   ): Promise<void> {
     this.logger.debug(`🗑️ Verificando vídeos para exclusão. Existentes: ${existingVideos.length}, Recebidos: ${incomingVideos?.length || 0}`);
     const incomingIds = new Set((incomingVideos || []).map((v) => v.id).filter(Boolean));
@@ -202,7 +201,6 @@ export class WeekMaterialsPageUpdateService {
   private async deleteDocumentMedia(
     existingDocuments: MediaItemEntity[],
     incomingDocuments: any[],
-    queryRunner: QueryRunner,
   ): Promise<void> {
     this.logger.debug(`🗑️ Verificando documentos para exclusão. Existentes: ${existingDocuments.length}, Recebidos: ${incomingDocuments?.length || 0}`);
     const incomingIds = new Set((incomingDocuments || []).map((d) => d.id).filter(Boolean));
@@ -219,7 +217,6 @@ export class WeekMaterialsPageUpdateService {
   private async deleteImageMedia(
     existingImages: MediaItemEntity[],
     incomingImages: any[],
-    queryRunner: QueryRunner,
   ): Promise<void> {
     this.logger.debug(`🗑️ Verificando imagens para exclusão. Existentes: ${existingImages.length}, Recebidas: ${incomingImages?.length || 0}`);
     const incomingIds = new Set((incomingImages || []).map((i) => i.id).filter(Boolean));
@@ -236,7 +233,6 @@ export class WeekMaterialsPageUpdateService {
   private async deleteAudioMedia(
     existingAudios: MediaItemEntity[],
     incomingAudios: any[],
-    queryRunner: QueryRunner,
   ): Promise<void> {
     this.logger.debug(`🗑️ Verificando áudios para exclusão. Existentes: ${existingAudios.length}, Recebidos: ${incomingAudios?.length || 0}`);
     const incomingIds = new Set((incomingAudios || []).map((a) => a.id).filter(Boolean));

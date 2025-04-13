@@ -47,17 +47,14 @@ export class WeekMaterialsPageController {
         throw new BadRequestException('weekMaterialsPageData é obrigatório.');
       }
 
-      // Parsear o JSON manualmente
       const parsedData = JSON.parse(raw);
 
-      // Validar e transformar em DTO usando ValidationPipe manualmente
       const validationPipe = new ValidationPipe({ transform: true });
       const dto: CreateWeekMaterialsPageDto = await validationPipe.transform(parsedData, {
         type: 'body',
         metatype: CreateWeekMaterialsPageDto,
       });
 
-      // Criar o dicionário de arquivos
       const filesDict: Record<string, Express.Multer.File> = {};
       files.forEach((file) => {
         this.logger.debug(`Arquivo recebido - fieldname: ${file.fieldname}`);
@@ -65,7 +62,6 @@ export class WeekMaterialsPageController {
       });
       this.logger.debug(`Chaves em filesDict: ${Object.keys(filesDict)}`);
 
-      // Chamar o serviço com o DTO validado
       return await this.createService.createWeekMaterialsPage(dto, filesDict);
     } catch (error) {
       this.logger.error('Erro ao criar página de materiais', error);
