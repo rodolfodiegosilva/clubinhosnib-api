@@ -8,8 +8,8 @@ import {
   } from 'class-validator';
   import { Type } from 'class-transformer';
   import {
-    MediaPlatform,
-    MediaUploadType,
+    PlatformType,
+    UploadType,
     MediaType,
   } from 'src/share/media/media-item/media-item.entity';
   
@@ -26,8 +26,8 @@ import {
     @IsString({ message: 'O campo "description" da mídia deve ser uma string.' })
     description?: string;
   
-    @IsEnum(MediaUploadType, { message: 'O campo "type" deve ser "upload" ou "link".' })
-    type: MediaUploadType;
+    @IsEnum(UploadType, { message: 'O campo "type" deve ser "upload" ou "link".' })
+    type: UploadType;
   
     @IsBoolean({ message: 'O campo "isLocalFile" deve ser booleano.' })
     isLocalFile: boolean;
@@ -37,8 +37,8 @@ import {
     url?: string;
   
     @IsOptional()
-    @IsEnum(MediaPlatform, { message: 'O campo "platform" deve conter uma plataforma válida.' })
-    platform?: MediaPlatform;
+    @IsEnum(PlatformType, { message: 'O campo "platformType" deve conter uma plataforma válida.' })
+    platformType?: PlatformType;
   
     @IsOptional()
     @IsString({ message: 'O campo "originalName" deve ser uma string.' })

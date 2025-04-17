@@ -12,7 +12,10 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MeditationService } from './meditation.service';
+import { CreateMeditationService } from './services/create-meditation.service';
+import { UpdateMeditationService } from './services/update-meditation.service';
+import { DeleteMeditationService } from './services/delete-meditation.service';
+import { GetMeditationService } from './services/get-meditation.service';
 import { UpdateMeditationDto } from './dto/update-meditation.dto';
 import { MeditationEntity } from './entities/meditation.entity';
 import { plainToInstance } from 'class-transformer';
@@ -22,7 +25,12 @@ import { WeekMeditationResponseDto } from './dto/week-meditation-response-dto';
 
 @Controller('meditations')
 export class MeditationController {
-  constructor(private readonly meditationService: MeditationService) { }
+  constructor(
+    private readonly createMeditationService: CreateMeditationService,
+    private readonly updateMeditationService: UpdateMeditationService,
+    private readonly deleteMeditationService: DeleteMeditationService,
+    private readonly getMeditationService: GetMeditationService,
+  ) {}
 
   @Post()
   @UseInterceptors(FileInterceptor('file'))
@@ -39,7 +47,7 @@ export class MeditationController {
         forbidNonWhitelisted: true,
       });
 
-      return this.meditationService.create(dto, file);
+      return this.createMeditationService.create(dto, file);
     } catch (error) {
       throw new BadRequestException(
         error instanceof Array ? error.map(e => Object.values(e.constraints)).flat().join('; ') : error.message,
@@ -49,31 +57,27 @@ export class MeditationController {
 
   @Get()
   async findAll(): Promise<WeekMeditationResponseDto[]> {
-    return this.meditationService.findAll();
+    return this.getMeditationService.findAll();
   }
-  
-
 
   @Get('/this-week')
   async getThisWeekMeditation(): Promise<WeekMeditationResponseDto> {
-    return this.meditationService.getThisWeekMeditation();
+    return this.getMeditationService.getThisWeekMeditation();
   }
-
-
 
   @Get(':id')
   findOne(@Param('id') id: string): Promise<MeditationEntity> {
-    return this.meditationService.findOne(id);
+    return this.getMeditationService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateMeditationDto): Promise<MeditationEntity> {
-    return this.meditationService.update(id, dto);
+    return this.updateMeditationService.update(id, dto);
   }
 
   @Delete(':id')
   @HttpCode(204)
   remove(@Param('id') id: string): Promise<void> {
-    return this.meditationService.remove(id);
+    return this.deleteMeditationService.remove(id);
   }
 }

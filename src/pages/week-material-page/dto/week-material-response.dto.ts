@@ -1,15 +1,15 @@
 import { RouteType } from 'src/route/route-page.entity';
 import { WeekMaterialsPageEntity } from '../entities/week-material-page.entity';
 import { Logger } from '@nestjs/common';
-import { MediaItemEntity, MediaPlatform, MediaType, MediaUploadType } from 'src/share/media/media-item/media-item.entity';
+import { MediaItemEntity, PlatformType, MediaType, UploadType } from 'src/share/media/media-item/media-item.entity';
 
 export class weekMediaItemResponseDTO {
   id: string;
   title: string;
   description: string;
-  type: MediaUploadType;
+  uploadType: UploadType;
   mediaType: MediaType;
-  platform?: MediaPlatform;
+  platformType?: PlatformType;
   url: string;
   isLocalFile?: boolean;
   size?: number;
@@ -70,9 +70,9 @@ export class WeekMaterialsPageResponseDTO {
         id: item.id,
         title: item.title,
         description: item.description,
-        type: item.type,
+        uploadType: item.uploadType,
         mediaType: item.mediaType,
-        platform: item.platform,
+        platformType: item.platformType,
         url: item.url,
         isLocalFile: item.isLocalFile,
         size: item.size,

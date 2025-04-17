@@ -1,3 +1,4 @@
+import { BaseEntity } from 'src/share/share-entity/base.entity';
 import {
   Entity,
   PrimaryColumn,
@@ -14,12 +15,12 @@ export enum MediaType {
   AUDIO = 'audio',
 }
 
-export enum MediaUploadType {
+export enum UploadType {
   LINK = 'link',
   UPLOAD = 'upload',
 }
 
-export enum MediaPlatform {
+export enum PlatformType {
   YOUTUBE = 'youtube',
   GOOGLE_DRIVE = 'googledrive',
   ONEDRIVE = 'onedrive',
@@ -28,9 +29,7 @@ export enum MediaPlatform {
 }
 
 @Entity('media_items')
-export class MediaItemEntity {
-  @PrimaryColumn()
-  id: string;
+export class MediaItemEntity extends BaseEntity {
 
   @Column()
   title: string;
@@ -46,16 +45,16 @@ export class MediaItemEntity {
 
   @Column({
     type: 'enum',
-    enum: MediaUploadType,
+    enum: UploadType,
   })
-  type: MediaUploadType;
+  uploadType: UploadType;
 
   @Column({
     type: 'enum',
-    enum: MediaPlatform,
+    enum: PlatformType,
     nullable: true,
   })
-  platform?: MediaPlatform;
+  platformType?: PlatformType;
 
   @Column()
   url: string;
@@ -69,20 +68,9 @@ export class MediaItemEntity {
   @Column({ nullable: true })
   size?: number;
 
-  // Campos para relacionamento polimórfico
   @Column()
   targetId: string;
-
+  
   @Column()
   targetType: string;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  constructor() {
-    if (!this.id) this.id = uuidv4();
-  }
 }

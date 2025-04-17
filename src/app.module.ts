@@ -12,6 +12,8 @@ import { WeekMaterialsPageModule } from './pages/week-material-page/week-materia
 import { ContactModule } from './contact/contact.module';
 import { EventModule } from './pages/event-page/event.module';
 import { CommentModule } from './comment/comment.module';
+import { DocumentModule } from './documents/documents.module';
+import { IdeasPageModule } from './pages/ideas-page/ideas-page.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { CommentModule } from './comment/comment.module';
     ContactModule,
     EventModule,
     CommentModule,
+    DocumentModule,
+    IdeasPageModule,
   ],
 })
 export class AppModule {}

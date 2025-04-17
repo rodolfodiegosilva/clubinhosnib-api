@@ -10,9 +10,9 @@ import { RouteService } from 'src/route/route.service';
 import { RouteEntity, RouteType } from 'src/route/route-page.entity';
 import {
   MediaItemEntity,
-  MediaPlatform,
+  PlatformType,
   MediaType,
-  MediaUploadType,
+  UploadType,
 } from 'src/share/media/media-item/media-item.entity';
 import { MediaItemProcessor } from 'src/share/media/media-item-processor';
 import { VideosPage } from '../entities/video-page.entity';
@@ -221,15 +221,15 @@ export class UpdateVideosPageService {
       {
         ...mediaInput,
         mediaType: MediaType.VIDEO,
-        type: mediaInput.type as MediaUploadType,
-        platform: mediaInput.platform as MediaPlatform,
+        type: mediaInput.type as UploadType,
+        platformType: mediaInput.platformType as PlatformType,
       },
       targetId,
       'VideosPage',
     ));
     this.logger.debug(`✅ Base da mídia construída`);
 
-    if (mediaInput.type === MediaUploadType.UPLOAD && mediaInput.isLocalFile) {
+    if (mediaInput.type === UploadType.UPLOAD && mediaInput.isLocalFile) {
       this.logger.debug(`🔍 Verificando arquivo para upload: fieldKey=${mediaInput.fieldKey || mediaInput.url}`);
       const file = filesDict[mediaInput.fieldKey || mediaInput.url];
       if (!file) {
@@ -242,7 +242,7 @@ export class UpdateVideosPageService {
       media.originalName = file.originalname;
       media.size = file.size;
       this.logger.debug(`✅ Upload concluído, URL: ${media.url}`);
-    } else if (mediaInput.type === MediaUploadType.LINK || mediaInput.isLocalFile === false) {
+    } else if (mediaInput.type === UploadType.LINK || mediaInput.isLocalFile === false) {
       if (!mediaInput.url) {
         this.logger.error('❌ URL obrigatória para vídeos do tipo link');
         throw new BadRequestException('URL obrigatória para vídeos do tipo link.');
@@ -250,8 +250,8 @@ export class UpdateVideosPageService {
       this.logger.debug(`🔗 Usando URL fornecida: ${mediaInput.url}`);
       media.url = mediaInput.url;
       media.isLocalFile = false;
-      media.platform = mediaInput.platform || MediaPlatform.YOUTUBE;
-      this.logger.debug(`✅ Plataforma definida: ${media.platform}`);
+      media.platformType = mediaInput.platformType || PlatformType.YOUTUBE;
+      this.logger.debug(`✅ Plataforma definida: ${media.platformType}`);
     } else {
       this.logger.error(`❌ Tipo de mídia inválido: ${mediaInput.type}`);
       throw new BadRequestException(`Tipo de mídia inválido: ${mediaInput.type}`);
@@ -285,8 +285,8 @@ export class UpdateVideosPageService {
       {
         ...mediaInput,
         mediaType: MediaType.VIDEO,
-        type: mediaInput.type as MediaUploadType,
-        platform: mediaInput.platform as MediaPlatform,
+        type: mediaInput.type as UploadType,
+        platformType: mediaInput.platformType as PlatformType,
       },
       targetId,
       'VideosPage',
@@ -294,7 +294,7 @@ export class UpdateVideosPageService {
     media.id = mediaInput.id;
     this.logger.debug(`✅ Base da mídia construída com ID: ${media.id}`);
 
-    if (mediaInput.type === MediaUploadType.UPLOAD) {
+    if (mediaInput.type === UploadType.UPLOAD) {
       this.logger.debug(`🔍 Verificando arquivo para upload: fieldKey=${mediaInput.fieldKey || 'não fornecido'}`);
       const file = filesDict[mediaInput.fieldKey];
       if (file) {
@@ -312,7 +312,7 @@ export class UpdateVideosPageService {
         media.size = existingMedia.size;
         this.logger.debug(`✅ Dados existentes mantidos: URL=${media.url}`);
       }
-    } else if (mediaInput.type === MediaUploadType.LINK) {
+    } else if (mediaInput.type === UploadType.LINK) {
       if (!mediaInput.url) {
         this.logger.error('❌ URL obrigatória para vídeos do tipo link');
         throw new BadRequestException('URL obrigatória para vídeos do tipo link.');
@@ -320,8 +320,8 @@ export class UpdateVideosPageService {
       this.logger.debug(`🔗 Atualizando com nova URL: ${mediaInput.url}`);
       media.url = mediaInput.url;
       media.isLocalFile = false;
-      media.platform = mediaInput.platform || MediaPlatform.YOUTUBE;
-      this.logger.debug(`✅ Plataforma definida: ${media.platform}`);
+      media.platformType = mediaInput.platformType || PlatformType.YOUTUBE;
+      this.logger.debug(`✅ Plataforma definida: ${media.platformType}`);
     } else {
       this.logger.error(`❌ Tipo de mídia inválido: ${mediaInput.type}`);
       throw new BadRequestException(`Tipo de mídia inválido: ${mediaInput.type}`);
