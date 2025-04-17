@@ -15,6 +15,9 @@ import { MediaItemEntity } from 'src/share/media/media-item/media-item.entity';
 import { ContactEntity } from 'src/contact/contact.entity';
 import { EventEntity } from 'src/pages/event-page/entities/event.entity';
 import { CommentEntity } from 'src/comment/entity/comment.entity';
+import { DocumentEntity } from 'src/documents/entities/document.entity';
+import { IdeasSectionEntity } from 'src/pages/ideas-page/entities/ideas-section.entity';
+import { IdeasPageEntity } from 'src/pages/ideas-page/entities/ideas-page.entity';
 ;
 
 @Module({
@@ -46,7 +49,9 @@ import { CommentEntity } from 'src/comment/entity/comment.entity';
             DayEntity,
             MediaItemEntity,
             ContactEntity,
-            CommentEntity
+            CommentEntity,
+            DocumentEntity,
+            IdeasPageEntity, IdeasSectionEntity
           ],
           synchronize: true,
         };

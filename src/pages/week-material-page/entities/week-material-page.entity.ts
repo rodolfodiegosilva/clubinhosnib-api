@@ -10,6 +10,9 @@ export class WeekMaterialsPageEntity extends BaseEntity {
   @Column()
   subtitle: string;
 
+  @Column({ default: false })
+  currentWeek: boolean;
+
   @Column({ type: 'text' })
   description: string;
 

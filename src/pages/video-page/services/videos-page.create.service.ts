@@ -7,7 +7,7 @@ import {
   import { AwsS3Service } from 'src/aws/aws-s3.service';
   import { RouteService } from 'src/route/route.service';
   import { RouteType } from 'src/route/route-page.entity';
-  import { MediaPlatform, MediaType, MediaUploadType } from 'src/share/media/media-item/media-item.entity';
+  import { PlatformType, MediaType, UploadType } from 'src/share/media/media-item/media-item.entity';
   import { MediaItemProcessor } from 'src/share/media/media-item-processor';
   import { VideosPageRepository } from '../video-page.repository';
   import { CreateVideosPageDto } from '../dto/create-videos-page.dto';
@@ -65,8 +65,8 @@ import { MediaTargetType } from 'src/share/media/media-target-type.enum';
           videos.map((video) => ({
             ...video,
             mediaType: MediaType.VIDEO,
-            type: video.type as MediaUploadType,
-            platform: video.platform as MediaPlatform,
+            uploadType: video.uploadType as UploadType,
+            platformType: video.platformType as PlatformType,
             fileField: video.fieldKey,
           })),
           savedPage.id,

@@ -1,8 +1,10 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Logger } from '@nestjs/common';
 import { ContactService } from './contact.service';
 
 @Controller('contact')
 export class ContactController {
+  private readonly logger = new Logger(ContactController.name);
+
   constructor(private readonly contactService: ContactService) {}
 
   @Post()
@@ -12,6 +14,11 @@ export class ContactController {
     phone: string;
     message: string;
   }) {
-    return this.contactService.createContact(body);
+    this.logger.debug(`📩 Recebendo nova mensagem de contato de: ${body.name} <${body.email}>`);
+    
+    const result = await this.contactService.createContact(body);
+    
+    this.logger.log(`✅ Contato criado com sucesso para: ${body.email}`);
+    return result;
   }
 }

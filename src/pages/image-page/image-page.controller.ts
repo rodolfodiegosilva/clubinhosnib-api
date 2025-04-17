@@ -82,7 +82,14 @@ export class ImageController {
     this.logger.debug('🚀 Recebendo requisição para atualizar galeria com ID:', id);
 
     try {
-      const parsedDto = plainToInstance(UpdateImagePageDto, JSON.parse(raw));
+      const rawObject = JSON.parse(raw);
+      rawObject.sections?.forEach((section) => {
+        section.mediaItems?.forEach((media) => {
+          delete media.file;
+        });
+      });
+
+      const parsedDto = plainToInstance(UpdateImagePageDto, rawObject);
       const errors = await validate(parsedDto, {
         whitelist: true,
         forbidNonWhitelisted: true,
@@ -101,6 +108,7 @@ export class ImageController {
       this.logger.error('❌ Erro ao atualizar galeria', err);
       throw new BadRequestException('Erro ao atualizar a galeria.');
     }
+
   }
 
   @Get()

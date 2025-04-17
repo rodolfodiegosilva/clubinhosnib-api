@@ -10,15 +10,15 @@ import { RouteService } from 'src/route/route.service';
 import { RouteEntity, RouteType } from 'src/route/route-page.entity';
 import {
   MediaItemEntity,
-  MediaPlatform,
+  PlatformType,
   MediaType,
-  MediaUploadType,
+  UploadType,
 } from 'src/share/media/media-item/media-item.entity';
 import { MediaItemProcessor } from 'src/share/media/media-item-processor';
-import { VideosPage } from '../entities/video-page.entity';
 import { UpdateVideosPageDto } from '../dto/update-videos-page.dto';
 import { VideosPageResponseDto } from '../dto/videos-page-response.dto';
 import { VideosPageRepository } from '../video-page.repository';
+import { MediaItemDto } from 'src/share/share-dto/media-item-dto';
 
 @Injectable()
 export class UpdateVideosPageService {
@@ -160,7 +160,7 @@ export class UpdateVideosPageService {
         continue;
       }
       this.logger.debug(`🗑️ Processando remoção da mídia ID: ${media.id}, URL: ${media.url || 'não fornecida'}`);
-      
+
       if (media.isLocalFile && media.url) {
         this.logger.debug(`🗑️ Removendo arquivo do S3: ${media.url}`);
         try {
@@ -182,7 +182,7 @@ export class UpdateVideosPageService {
   }
 
   private async processPageMedia(
-    mediaItems: any[],
+    mediaItems: MediaItemDto[],
     pageId: string,
     oldMedia: MediaItemEntity[],
     filesDict: Record<string, Express.Multer.File>,
@@ -191,7 +191,7 @@ export class UpdateVideosPageService {
     this.logger.debug(`📽️ Iniciando processamento de ${mediaItems.length} mídias`);
     const processed: MediaItemEntity[] = [];
     for (const mediaInput of mediaItems) {
-      this.logger.debug(`📽️ Processando mídia: type=${mediaInput.type}, id=${mediaInput.id || 'novo'}`);
+      this.logger.debug(`📽️ Processando mídia: type=${mediaInput.uploadType}, id=${mediaInput.id || 'novo'}`);
       if (mediaInput.id) {
         this.logger.debug(`🔄 Iniciando upsert para mídia existente ID: ${mediaInput.id}`);
         const saved = await this.upsertMedia(mediaInput, pageId, filesDict, queryRunner);
@@ -209,40 +209,46 @@ export class UpdateVideosPageService {
   }
 
   private async addMedia(
-    mediaInput: any,
+    mediaInput: MediaItemDto,
     targetId: string,
     filesDict: Record<string, Express.Multer.File>,
     queryRunner: QueryRunner,
   ): Promise<MediaItemEntity> {
-    this.logger.debug(`➕ Iniciando adição de nova mídia: type=${mediaInput.type}, fieldKey=${mediaInput.fieldKey || 'não fornecido'}`);
+    this.logger.debug(`➕ Iniciando adição de nova mídia: type=${mediaInput.uploadType}, fieldKey=${mediaInput.fieldKey || 'não fornecido'}`);
     const media = new MediaItemEntity();
     this.logger.debug(`📋 Construindo base da mídia para targetId: ${targetId}`);
     Object.assign(media, this.mediaItemProcessor.buildBaseMediaItem(
       {
         ...mediaInput,
         mediaType: MediaType.VIDEO,
-        type: mediaInput.type as MediaUploadType,
-        platform: mediaInput.platform as MediaPlatform,
+        uploadType: mediaInput.uploadType as UploadType,
+        platformType: mediaInput.platformType as PlatformType,
       },
       targetId,
       'VideosPage',
     ));
     this.logger.debug(`✅ Base da mídia construída`);
 
-    if (mediaInput.type === MediaUploadType.UPLOAD && mediaInput.isLocalFile) {
+    if (mediaInput.uploadType === UploadType.UPLOAD && mediaInput.isLocalFile) {
       this.logger.debug(`🔍 Verificando arquivo para upload: fieldKey=${mediaInput.fieldKey || mediaInput.url}`);
-      const file = filesDict[mediaInput.fieldKey || mediaInput.url];
-      if (!file) {
-        this.logger.error(`❌ Arquivo ausente para upload: ${mediaInput.fieldKey || mediaInput.url}`);
-        throw new BadRequestException(`Arquivo ausente para upload: ${mediaInput.fieldKey || mediaInput.url}`);
+      const key = mediaInput.fieldKey ?? mediaInput.url;
+      if (!key) {
+        this.logger.error(`❌ Arquivo ausente para upload: nenhum fieldKey ou url fornecido`);
+        throw new Error(`Arquivo ausente para upload: nenhum fieldKey ou url fornecido`);
       }
+      const file = filesDict[key];
+      if (!file) {
+        this.logger.error(`❌ Arquivo não encontrado para chave: ${key}`);
+        throw new Error(`Arquivo não encontrado para upload: ${key}`);
+      }
+
       this.logger.debug(`📤 Iniciando upload do arquivo para S3: ${file.originalname}`);
       media.url = await this.awsS3Service.upload(file);
       media.isLocalFile = true;
       media.originalName = file.originalname;
       media.size = file.size;
       this.logger.debug(`✅ Upload concluído, URL: ${media.url}`);
-    } else if (mediaInput.type === MediaUploadType.LINK || mediaInput.isLocalFile === false) {
+    } else if (mediaInput.uploadType === UploadType.LINK || mediaInput.isLocalFile === false) {
       if (!mediaInput.url) {
         this.logger.error('❌ URL obrigatória para vídeos do tipo link');
         throw new BadRequestException('URL obrigatória para vídeos do tipo link.');
@@ -250,11 +256,11 @@ export class UpdateVideosPageService {
       this.logger.debug(`🔗 Usando URL fornecida: ${mediaInput.url}`);
       media.url = mediaInput.url;
       media.isLocalFile = false;
-      media.platform = mediaInput.platform || MediaPlatform.YOUTUBE;
-      this.logger.debug(`✅ Plataforma definida: ${media.platform}`);
+      media.platformType = mediaInput.platformType || PlatformType.YOUTUBE;
+      this.logger.debug(`✅ Plataforma definida: ${media.platformType}`);
     } else {
-      this.logger.error(`❌ Tipo de mídia inválido: ${mediaInput.type}`);
-      throw new BadRequestException(`Tipo de mídia inválido: ${mediaInput.type}`);
+      this.logger.error(`❌ Tipo de mídia inválido: ${mediaInput.uploadType}`);
+      throw new BadRequestException(`Tipo de mídia inválido: ${mediaInput.uploadType}`);
     }
 
     this.logger.debug(`💾 Iniciando salvamento da nova mídia no banco de dados`);
@@ -264,12 +270,12 @@ export class UpdateVideosPageService {
   }
 
   private async upsertMedia(
-    mediaInput: any,
+    mediaInput: MediaItemDto,
     targetId: string,
     filesDict: Record<string, Express.Multer.File>,
     queryRunner: QueryRunner,
   ): Promise<MediaItemEntity> {
-    this.logger.debug(`🔄 Iniciando atualização da mídia: ID=${mediaInput.id}, type=${mediaInput.type}`);
+    this.logger.debug(`🔄 Iniciando atualização da mídia: ID=${mediaInput.id}, type=${mediaInput.uploadType}`);
 
     this.logger.debug(`🔍 Buscando mídia existente com ID: ${mediaInput.id}`);
     const existingMedia = await queryRunner.manager.findOne(MediaItemEntity, { where: { id: mediaInput.id } });
@@ -285,18 +291,20 @@ export class UpdateVideosPageService {
       {
         ...mediaInput,
         mediaType: MediaType.VIDEO,
-        type: mediaInput.type as MediaUploadType,
-        platform: mediaInput.platform as MediaPlatform,
+        uploadType: mediaInput.uploadType as UploadType,
+        platformType: mediaInput.platformType as PlatformType,
       },
       targetId,
       'VideosPage',
     ));
-    media.id = mediaInput.id;
+    media.id = mediaInput.id || '';
     this.logger.debug(`✅ Base da mídia construída com ID: ${media.id}`);
 
-    if (mediaInput.type === MediaUploadType.UPLOAD) {
+    if (mediaInput.uploadType === UploadType.UPLOAD) {
       this.logger.debug(`🔍 Verificando arquivo para upload: fieldKey=${mediaInput.fieldKey || 'não fornecido'}`);
-      const file = filesDict[mediaInput.fieldKey];
+      const key = mediaInput.fieldKey ?? '';
+      const file = filesDict[key];
+
       if (file) {
         this.logger.debug(`📤 Novo arquivo detectado, iniciando upload para S3: ${file.originalname}`);
         media.url = await this.awsS3Service.upload(file);
@@ -312,7 +320,7 @@ export class UpdateVideosPageService {
         media.size = existingMedia.size;
         this.logger.debug(`✅ Dados existentes mantidos: URL=${media.url}`);
       }
-    } else if (mediaInput.type === MediaUploadType.LINK) {
+    } else if (mediaInput.uploadType === UploadType.LINK) {
       if (!mediaInput.url) {
         this.logger.error('❌ URL obrigatória para vídeos do tipo link');
         throw new BadRequestException('URL obrigatória para vídeos do tipo link.');
@@ -320,11 +328,11 @@ export class UpdateVideosPageService {
       this.logger.debug(`🔗 Atualizando com nova URL: ${mediaInput.url}`);
       media.url = mediaInput.url;
       media.isLocalFile = false;
-      media.platform = mediaInput.platform || MediaPlatform.YOUTUBE;
-      this.logger.debug(`✅ Plataforma definida: ${media.platform}`);
+      media.platformType = mediaInput.platformType || PlatformType.YOUTUBE;
+      this.logger.debug(`✅ Plataforma definida: ${media.platformType}`);
     } else {
-      this.logger.error(`❌ Tipo de mídia inválido: ${mediaInput.type}`);
-      throw new BadRequestException(`Tipo de mídia inválido: ${mediaInput.type}`);
+      this.logger.error(`❌ Tipo de mídia inválido: ${mediaInput.uploadType}`);
+      throw new BadRequestException(`Tipo de mídia inválido: ${mediaInput.uploadType}`);
     }
 
     this.logger.debug(`💾 Iniciando salvamento da mídia atualizada no banco de dados`);

@@ -1,6 +1,5 @@
-import { MediaItemDto } from 'src/meditation/dto/week-meditation-response-dto';
 import { RouteEntity } from 'src/route/route-page.entity';
-import { MediaItemEntity } from 'src/share/media/media-item/media-item.entity';
+import { MediaItemEntity, MediaType, UploadType, PlatformType } from 'src/share/media/media-item/media-item.entity';
 import { ImagePageEntity } from '../entity/Image-page.entity';
 import { ImageSectionEntity } from '../entity/Image-section.entity';
 
@@ -32,9 +31,31 @@ export class ImageRouteDto {
   }
 }
 
-export class GalleryMediaItemDto extends MediaItemDto {
-  static override fromEntity(entity: MediaItemEntity): GalleryMediaItemDto {
-    return super.fromEntity(entity) as GalleryMediaItemDto;
+export class GalleryMediaItemDto {
+  id?: string;
+  title?: string;
+  description?: string;
+  uploadType: UploadType;
+  mediaType: MediaType;
+  isLocalFile: boolean;
+  url?: string;
+  platformType?: PlatformType;
+  originalName?: string;
+  size?: number;
+
+  static fromEntity(entity: MediaItemEntity): GalleryMediaItemDto {
+    return {
+      id: entity.id,
+      title: entity.title,
+      description: entity.description,
+      uploadType: entity.uploadType,
+      mediaType: entity.mediaType,
+      isLocalFile: entity.isLocalFile,
+      url: entity.url,
+      platformType: entity.platformType,
+      originalName: entity.originalName,
+      size: entity.size,
+    };
   }
 }
 
@@ -55,7 +76,7 @@ export class ImageSectionDto {
       public: section.public,
       createdAt: section.createdAt,
       updatedAt: section.updatedAt,
-      mediaItems: mediaItems.map((media) => GalleryMediaItemDto.fromEntity(media)),
+      mediaItems: mediaItems.map(GalleryMediaItemDto.fromEntity),
     };
   }
 }

@@ -19,6 +19,13 @@ export class WeekMaterialsPageRepository extends Repository<WeekMaterialsPageEnt
     });
   }
 
+  async findCurrentWeek(): Promise<WeekMaterialsPageEntity | null> {
+    return this.findOne({
+      where: { currentWeek : true },      
+      relations: ['route'],
+    });
+  }
+
   async savePage(page: WeekMaterialsPageEntity): Promise<WeekMaterialsPageEntity> {
     return this.save(page);
   }

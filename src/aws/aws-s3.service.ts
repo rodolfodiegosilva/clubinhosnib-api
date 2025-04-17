@@ -29,7 +29,6 @@ export class AwsS3Service {
       this.logger.error('❌ AWS_S3_BUCKET_NAME não foi definido!');
     }
 
-    // Cliente S3 (mantido 100% como antes)
     this.s3Client = new S3Client({
       region: this.region,
       credentials: {
@@ -38,7 +37,6 @@ export class AwsS3Service {
       },
     });
 
-    // Cliente SES (usando as mesmas credenciais)
     this.sesClient = new SESClient({
       region: this.region,
       credentials: {

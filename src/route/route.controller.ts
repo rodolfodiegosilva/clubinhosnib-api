@@ -5,6 +5,7 @@ import {
   Param,
   Logger,
   UseGuards,
+  NotFoundException,
 } from '@nestjs/common';
 import { RouteService } from './route.service';
 import { RouteEntity } from './route-page.entity';
@@ -18,28 +19,26 @@ export class RouteController {
 
   @Get()
   async findAll(): Promise<RouteEntity[]> {
-    this.logger.debug('Buscando todas as rotas...');
     const routes = await this.routeService.findAllRoutes();
-    this.logger.debug(`Total de rotas encontradas: ${routes.length}`);
+    this.logger.debug(`📦 Rotas retornadas: ${routes.length}`);
     return routes;
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<RouteEntity | null> {
-    this.logger.debug(`Buscando rota com ID=${id}`);
+  async findOne(@Param('id') id: string): Promise<RouteEntity> {
     const route = await this.routeService.findById(id);
     if (!route) {
-      this.logger.warn(`Rota ID=${id} não encontrada.`);
+      this.logger.warn(`⚠️ Rota ID=${id} não encontrada`);
+      throw new NotFoundException('Rota não encontrada');
     }
     return route;
   }
-  
+
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async removeRoute(@Param('id') id: string) {
-    this.logger.debug(`Removendo rota com ID=${id}...`);
     await this.routeService.removeRoute(id);
-    this.logger.debug(`Rota ID=${id} removida com sucesso.`);
+    this.logger.log(`🗑️ Rota ID=${id} removida`);
     return { message: `Rota ID=${id} removida com sucesso` };
   }
 }

@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ContactRepository } from './contact.repository';
 import { AwsS3Service } from 'src/aws/aws-s3.service';
 import { ContactEntity } from './contact.entity';
@@ -20,13 +24,28 @@ export class ContactService {
   }
 
   async createContact(data: Partial<ContactEntity>): Promise<ContactEntity> {
-    const contact = await this.contactRepo.saveContact(data);
+    this.logger.debug(`📩 Iniciando processo de criação de contato para: ${data.email}`);
+
+    let contact: ContactEntity;
+    try {
+      contact = await this.contactRepo.saveContact(data);
+      this.logger.log(`✅ Contato salvo no banco: ID=${contact.id}`);
+    } catch (error) {
+      this.logger.error(`❌ Erro ao salvar contato no banco: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Erro ao salvar o contato');
+    }
 
     const htmlBody = this.generateContactEmailTemplate(contact);
     const subject = 'Novo contato do site';
     const to = process.env.SES_DEFAULT_TO ?? 'contato@rodolfo-silva.com';
 
-    await this.awsService.sendEmailViaSES(to, subject, '', htmlBody);
+    try {
+      await this.awsService.sendEmailViaSES(to, subject, '', htmlBody);
+      this.logger.log(`📧 E-mail enviado com sucesso para: ${to}`);
+    } catch (error) {
+      this.logger.error(`❌ Erro ao enviar e-mail: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Erro ao enviar e-mail de contato');
+    }
 
     const whatsappFrom = process.env.TWILIO_WHATSAPP_FROM;
     const whatsappTo = process.env.TWILIO_WHATSAPP_TO;
@@ -41,10 +60,11 @@ export class ContactService {
         });
         this.logger.log(`📲 WhatsApp enviado com sucesso! SID: ${result.sid}`);
       } catch (err) {
-        this.logger.error(`❌ Erro ao enviar WhatsApp: ${err.message}`);
+        this.logger.error(`❌ Erro ao enviar WhatsApp: ${err.message}`, err.stack);
+        throw new InternalServerErrorException('Erro ao enviar WhatsApp de contato');
       }
     } else {
-      this.logger.warn('⚠️ TWILIO_WHATSAPP_FROM ou TO não estão definidos no .env');
+      this.logger.warn('⚠️ TWILIO_WHATSAPP_FROM ou TO não estão definidos no .env — WhatsApp não será enviado.');
     }
 
     return contact;

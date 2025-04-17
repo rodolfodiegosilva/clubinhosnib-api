@@ -2,14 +2,15 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 import { AwsS3Service } from 'src/aws/aws-s3.service';
 import { RouteService } from 'src/route/route.service';
-import { RouteEntity, RouteType } from 'src/route/route-page.entity';
+import { RouteType } from 'src/route/route-page.entity';
 import { MediaTargetType } from 'src/share/media/media-target-type.enum';
 import { MediaItemProcessor } from 'src/share/media/media-item-processor';
 import { WeekMaterialsPageRepository } from '../week-material.repository';
-import { MediaItemEntity, MediaType } from 'src/share/media/media-item/media-item.entity';
+import { MediaItemEntity, MediaType, UploadType } from 'src/share/media/media-item/media-item.entity';
 import { CreateWeekMaterialsPageDto } from '../dto/create-week-material.dto';
 import { WeekMaterialsPageResponseDTO } from '../dto/week-material-response.dto';
 import { WeekMaterialsPageEntity } from '../entities/week-material-page.entity';
+import { MediaItemDto } from 'src/share/share-dto/media-item-dto';
 
 @Injectable()
 export class WeekMaterialsPageCreateService {
@@ -93,37 +94,37 @@ export class WeekMaterialsPageCreateService {
   }
 
   private mergeAndFixMedia(dto: {
-    videos: any[];
-    documents: any[];
-    images: any[];
-    audios: any[];
-  }): any[] {
+    videos: MediaItemDto[];
+    documents: MediaItemDto[];
+    images: MediaItemDto[];
+    audios: MediaItemDto[];
+  }): MediaItemDto[] {
 
-    const videos = (dto.videos || []).map((item) => ({
-      ...item,
+    const videos = (dto.videos || []).map((media) => ({
+      ...media,
       mediaType: MediaType.VIDEO,
-      fileField: item.type === 'upload' && item.isLocalFile ? item.fieldKey : undefined,
+      fileField: media.uploadType === UploadType.UPLOAD && media.isLocalFile ? media.fieldKey : undefined,
     }));
-    const documents = (dto.documents || []).map((item) => ({
-      ...item,
+    const documents = (dto.documents || []).map((media) => ({
+      ...media,
       mediaType: MediaType.DOCUMENT,
-      fileField: item.type === 'upload' && item.isLocalFile ? item.fieldKey : undefined,
+      fileField: media.uploadType === UploadType.UPLOAD && media.isLocalFile ? media.fieldKey : undefined,
     }));
-    const images = (dto.images || []).map((item) => ({
-      ...item,
+    const images = (dto.images || []).map((media) => ({
+      ...media,
       mediaType: MediaType.IMAGE,
-      fileField: item.type === 'upload' && item.isLocalFile ? item.fieldKey : undefined,
+      fileField:  media.uploadType === UploadType.UPLOAD && media.isLocalFile ? media.fieldKey : undefined,
     }));
-    const audios = (dto.audios || []).map((item) => ({
-      ...item,
+    const audios = (dto.audios || []).map((media) => ({
+      ...media,
       mediaType: MediaType.AUDIO,
-      fileField: item.type === 'upload' && item.isLocalFile ? item.fieldKey : undefined,
+      fileField:  media.uploadType === UploadType.UPLOAD && media.isLocalFile ? media.fieldKey : undefined,
     }));
 
     const mediaItems = [...videos, ...documents, ...images, ...audios];
 
     mediaItems.forEach((item) => {
-      if (item.type === 'upload' && item.isLocalFile && !item.fileField) {
+      if ( item.uploadType === UploadType.UPLOAD && item.isLocalFile && !item.fileField) {
         throw new BadRequestException(`fieldKey ausente para item de mídia: ${item.title}`);
       }
     });
