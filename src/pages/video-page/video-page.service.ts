@@ -5,7 +5,7 @@ import { RouteService } from 'src/route/route.service';
 import { RouteEntity, RouteType } from 'src/route/route-page.entity';
 import { VideosPageRepository } from './video-page.repository';
 import { VideosPage } from './entities/video-page.entity';
-import { MediaItemEntity, MediaType, MediaUploadType, MediaPlatform } from 'src/share/media/media-item/media-item.entity';
+import { MediaItemEntity, MediaType, UploadType, PlatformType } from 'src/share/media/media-item/media-item.entity';
 import { MediaItemProcessor } from 'src/share/media/media-item-processor';
 import { VideosPageResponseDto } from './dto/videos-page-response.dto';
 import { CreateVideosPageDto } from './dto/create-videos-page.dto';
@@ -62,8 +62,8 @@ export class VideosPageService {
         videos.map((video) => ({
           ...video,
           mediaType: MediaType.VIDEO,
-          type: video.type as MediaUploadType,
-          platform: video.platform as MediaPlatform,
+          type: video.type as UploadType,
+          platformType: video.platformType as PlatformType,
           fileField: video.fieldKey,
         })),
         savedPage.id,
@@ -278,8 +278,8 @@ export class VideosPageService {
       {
         ...mediaInput,
         mediaType: MediaType.VIDEO,
-        type: mediaInput.type as MediaUploadType,
-        platform: mediaInput.platform as MediaPlatform,
+        type: mediaInput.type as UploadType,
+        platformType: mediaInput.platformType as PlatformType,
       },
       targetId,
       'VideosPage',
@@ -307,8 +307,8 @@ export class VideosPageService {
       {
         ...mediaInput,
         mediaType: MediaType.VIDEO,
-        type: mediaInput.type as MediaUploadType,
-        platform: mediaInput.platform as MediaPlatform,
+        type: mediaInput.type as UploadType,
+        platformType: mediaInput.platformType as PlatformType,
       },
       targetId,
       'VideosPage',

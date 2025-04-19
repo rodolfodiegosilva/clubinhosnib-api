@@ -15,9 +15,9 @@ import { RouteService } from 'src/route/route.service';
 import { RouteType } from 'src/route/route-page.entity';
 import {
   MediaItemEntity,
-  MediaPlatform,
+  PlatformType,
   MediaType,
-  MediaUploadType,
+  UploadType,
 } from 'src/share/media/media-item/media-item.entity';
 import { MediaItemProcessor } from 'src/share/media/media-item-processor';
 import { DayEntity } from './entities/day.entity';
@@ -112,7 +112,7 @@ export class MeditationService {
         description: dto.media.description,
         mediaType: MediaType.DOCUMENT,
         type: dto.media.type,
-        platform: dto.media.platform ?? null,
+        platformType: dto.media.platformType ?? null,
         fileField: 'file',
         isLocalFile: dto.media.isLocalFile,
         url: mediaUrl,
@@ -215,8 +215,8 @@ export class MeditationService {
         title: savedMeditation.topic,
         description: `Material da meditação: ${savedMeditation.topic}`,
         mediaType: MediaType.DOCUMENT,
-        type: dto.isLocalFile ? MediaUploadType.UPLOAD : MediaUploadType.LINK,
-        platform: dto.isLocalFile ? null : MediaPlatform.GOOGLE_DRIVE,
+        type: dto.isLocalFile ? UploadType.UPLOAD : UploadType.LINK,
+        platformType: dto.isLocalFile ? null : PlatformType.GOOGLE_DRIVE,
         fileField: 'file',
         isLocalFile: dto.isLocalFile,
         url: dto.url,

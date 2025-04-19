@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { WeekDay } from '../entities/day.entity';
-import { MediaPlatform, MediaUploadType } from 'src/share/media/media-item/media-item.entity';
+import { PlatformType, UploadType } from 'src/share/media/media-item/media-item.entity';
 
 class DayDto {
   @IsEnum(WeekDay, {
@@ -34,8 +34,8 @@ class MediaDto {
   @IsString({ message: 'description deve ser uma string' })
   description: string;
 
-  @IsEnum(MediaUploadType, { message: 'type deve ser "link" ou "upload"' })
-  type: MediaUploadType;
+  @IsEnum(UploadType, { message: 'type deve ser "link" ou "upload"' })
+  type: UploadType;
 
   @IsBoolean({ message: 'isLocalFile deve ser um booleano' })
   isLocalFile: boolean;
@@ -44,8 +44,8 @@ class MediaDto {
   url: string;
 
   @IsOptional()
-  @IsEnum(MediaPlatform, { message: 'platform deve ser um valor válido' })
-  platform?: MediaPlatform;
+  @IsEnum(PlatformType, { message: 'platformType deve ser um valor válido' })
+  platformType?: PlatformType;
 
   @IsOptional()
   @IsString({ message: 'originalName deve ser uma string' })

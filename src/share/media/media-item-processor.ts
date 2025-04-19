@@ -1,16 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { MediaItemEntity } from './media-item/media-item.entity';
+import { MediaItemEntity, UploadType } from './media-item/media-item.entity';
 import { MediaItemRepository } from './media-item-repository';
 
 @Injectable()
 export class MediaItemProcessor {
   private readonly logger = new Logger(MediaItemProcessor.name);
 
-  constructor(private readonly mediaRepo: MediaItemRepository) {}
+  constructor(private readonly mediaRepo: MediaItemRepository) { }
 
   async findMediaItemsByTarget(targetId: string, targetType: string): Promise<MediaItemEntity[]> {
     return this.mediaRepo.findByTarget(targetId, targetType);
   }
+
+  async findMediaItemByTarget(targetId: string, targetType: string): Promise<MediaItemEntity | null> {
+    const items = await this.findMediaItemsByTarget(targetId, targetType);
+    return items.length > 0 ? items[0] : null;
+  }
+
 
   async findManyMediaItemsByTargets(targetIds: string[], targetType: string): Promise<MediaItemEntity[]> {
     return this.mediaRepo.findManyByTargets(targetIds, targetType);
@@ -21,17 +27,17 @@ export class MediaItemProcessor {
     media.title = item.title;
     media.description = item.description;
     media.mediaType = item.mediaType;
-    media.type = item.type;
-    media.platform = item.platform || null;
-    media.url = item.url || '';
-    media.originalName = item.originalName || null;
-    media.size = item.size || null;
-    media.isLocalFile = item.isLocalFile ?? false;
+    media.uploadType = item.uploadType;
+    media.platformType = item.platformType;
+    media.url = item.url;
+    media.originalName = item.originalName;
+    media.size = item.size;
+    media.isLocalFile = item.isLocalFile;
     media.targetId = targetId;
     media.targetType = targetType;
     return media;
   }
-  
+
 
   async saveMediaItem(media: MediaItemEntity): Promise<MediaItemEntity> {
     return this.mediaRepo.save(media);
@@ -80,7 +86,7 @@ export class MediaItemProcessor {
     for (const item of items) {
       const media = this.buildBaseMediaItem(item, targetId, targetType);
 
-      if (item.type === 'upload') {
+      if (item.uploadType === UploadType.UPLOAD) {
         const file = filesDict[item.fileField];
         if (!file) throw new Error(`Arquivo ausente para upload: ${item.fileField}`);
 
@@ -131,7 +137,7 @@ export class MediaItemProcessor {
 
     const validUploadUrls = new Set(
       validIncoming
-        .filter((item) => item.type === 'upload')
+        .filter((item) => item.uploadType === UploadType.UPLOAD)
         .map((item) => {
           const fileRef = item.url || item.fileField;
           const previous = oldItems.find((old) => old.url === fileRef);
@@ -153,7 +159,7 @@ export class MediaItemProcessor {
     for (const item of validIncoming) {
       const media = this.buildBaseMediaItem(item, targetId, targetType);
 
-      if (item.type === 'upload') {
+      if (item.uploadType === UploadType.UPLOAD) {
         const fileRef = item.url || item.fileField;
         const previous = oldItems.find((old) => old.url === fileRef);
 

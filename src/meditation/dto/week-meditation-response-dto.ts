@@ -14,7 +14,7 @@ export enum WeekDay {
     type: 'link' | 'upload';
     url: string;
     isLocalFile: boolean;
-    platform?: 'youtube' | 'googledrive' | 'onedrive' | 'dropbox' | 'any';
+    platformType?: 'youtube' | 'googledrive' | 'onedrive' | 'dropbox' | 'any';
     originalName?: string;
     size?: number;
     createdAt?: Date;
@@ -29,7 +29,7 @@ export enum WeekDay {
         type: entity.type,
         url: entity.url,
         isLocalFile: entity.isLocalFile,
-        platform: entity.platform ?? undefined,
+        platformType: entity.platformType ?? undefined,
         originalName: entity.originalName,
         size: entity.size,
         createdAt: entity.createdAt,
