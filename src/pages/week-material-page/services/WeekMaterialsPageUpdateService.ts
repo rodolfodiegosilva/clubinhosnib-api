@@ -10,8 +10,9 @@ import { RouteService } from 'src/route/route.service';
 import { RouteEntity, RouteType } from 'src/route/route-page.entity';
 import { MediaTargetType } from 'src/share/media/media-target-type.enum';
 import { MediaItemProcessor } from 'src/share/media/media-item-processor';
-import { MediaItemEntity, MediaType } from 'src/share/media/media-item/media-item.entity';
+import { MediaItemEntity, MediaType, UploadType } from 'src/share/media/media-item/media-item.entity';
 import { WeekMaterialsPageEntity } from '../entities/week-material-page.entity';
+import { MediaItemDto } from 'src/share/share-dto/media-item-dto';
 
 @Injectable()
 export class WeekMaterialsPageUpdateService {
@@ -117,7 +118,7 @@ export class WeekMaterialsPageUpdateService {
       entityId: weekMaterialsPageId,
       public: false,
       type: RouteType.PAGE,
-      path:  'material_semanal_',
+      path: 'material_semanal_',
       image: 'https://bucket-clubinho-galeria.s3.us-east-2.amazonaws.com/uploads/img_card.jpg',
     };
     const savedRoute = await this.routeService.upsertRoute(routeId, routeData);
@@ -245,36 +246,54 @@ export class WeekMaterialsPageUpdateService {
       this.logger.debug('ℹ️ Nenhum áudio para remover');
     }
   }
-
   private async addVideoMedia(
-    videoInput: any,
+    videoInput: MediaItemDto,
     pageId: string,
     filesDict: Record<string, Express.Multer.File>,
     queryRunner: QueryRunner,
   ): Promise<MediaItemEntity> {
     this.logger.debug(`🆕 Construindo novo vídeo: "${videoInput.title}"`);
+
     const media = this.mediaItemProcessor.buildBaseMediaItem(
       { ...videoInput, mediaType: MediaType.VIDEO },
       pageId,
       MediaTargetType.WeekMaterialsPage,
     );
-    if (videoInput.type === 'upload' && videoInput.isLocalFile) {
+
+    const isUpload = videoInput.uploadType === UploadType.UPLOAD || videoInput.isLocalFile === true;
+
+    if (isUpload) {
+      media.platformType = undefined;
+      if (!videoInput.fieldKey) {
+        this.logger.error(`❌ FieldKey ausente para mídia "${videoInput.title}"`);
+        throw new BadRequestException(`FieldKey ausente para mídia "${videoInput.title}"`);
+      }
       const file = filesDict[videoInput.fieldKey];
       if (!file) {
-        this.logger.error(`❌ Arquivo ausente para vídeo "${videoInput.title}" (fieldKey: ${videoInput.fieldKey})`);
-        throw new BadRequestException(`Arquivo ausente para vídeo "${videoInput.title}"`);
+        this.logger.error(`❌ Arquivo ausente para mídia "${videoInput.title}" (fieldKey: ${videoInput.fieldKey})`);
+        throw new BadRequestException(`Arquivo ausente para mídia "${videoInput.title}"`);
       }
+
       this.logger.debug(`⬆️ Fazendo upload do vídeo "${file.originalname}" para S3`);
       media.url = await this.s3.upload(file);
-      media.isLocalFile = true;
+      media.isLocalFile = videoInput.isLocalFile;
       media.originalName = file.originalname;
       media.size = file.size;
+      media.platformType = undefined; // Corrige para não usar plataforma
       this.logger.debug(`✅ Upload concluído. URL=${media.url}`);
     } else {
-      media.url = videoInput.url?.trim() || '';
-      media.isLocalFile = false;
+      media.title = videoInput.title || media.title;
+      media.description = videoInput.description || media.description;
+      media.uploadType = videoInput.uploadType || media.uploadType;
+      media.platformType = videoInput.platformType || media.platformType;
+      media.mediaType = videoInput.mediaType || media.mediaType;
+      media.url = videoInput.url?.trim() || media.url;
+      media.originalName = videoInput.originalName || media.originalName;
+      media.isLocalFile = videoInput.isLocalFile || media.isLocalFile;
+      media.size = videoInput.size || media.size;
       this.logger.debug(`🔗 Usando URL externa para vídeo: "${media.url}"`);
     }
+
     this.logger.debug(`💾 Salvando vídeo no banco`);
     const savedMedia = await this.mediaItemProcessor.saveMediaItem(media);
     this.logger.debug(`✅ Vídeo salvo com ID=${savedMedia.id}`);
@@ -293,7 +312,9 @@ export class WeekMaterialsPageUpdateService {
       pageId,
       MediaTargetType.WeekMaterialsPage,
     );
-    if (documentInput.type === 'upload' && documentInput.isLocalFile) {
+
+    if (documentInput.uploadType === 'upload' || documentInput.isLocalFile === true) {
+      media.platformType = undefined;
       const file = filesDict[documentInput.fieldKey];
       if (!file) {
         this.logger.error(`❌ Arquivo ausente para documento "${documentInput.title}" (fieldKey: ${documentInput.fieldKey})`);
@@ -301,15 +322,23 @@ export class WeekMaterialsPageUpdateService {
       }
       this.logger.debug(`⬆️ Fazendo upload do documento "${file.originalname}" para S3`);
       media.url = await this.s3.upload(file);
-      media.isLocalFile = true;
+      media.isLocalFile = documentInput.isLocalFile;
       media.originalName = file.originalname;
       media.size = file.size;
       this.logger.debug(`✅ Upload concluído. URL=${media.url}`);
     } else {
-      media.url = documentInput.url?.trim() || '';
-      media.isLocalFile = false;
+      media.title = documentInput.title || media.title;
+      media.description = documentInput.description || media.description;
+      media.uploadType = documentInput.uploadType || media.uploadType;
+      media.platformType = documentInput.platformType || media.platformType;
+      media.mediaType = documentInput.mediaType || media.mediaType;
+      media.url = documentInput.url?.trim() || media.url;
+      media.originalName = documentInput.originalName || media.originalName;
+      media.isLocalFile = documentInput.isLocalFile || media.isLocalFile;
+      media.size = documentInput.size || media.size;
       this.logger.debug(`🔗 Usando URL externa para documento: "${media.url}"`);
     }
+
     this.logger.debug(`💾 Salvando documento no banco`);
     const savedMedia = await this.mediaItemProcessor.saveMediaItem(media);
     this.logger.debug(`✅ Documento salvo com ID=${savedMedia.id}`);
@@ -328,7 +357,9 @@ export class WeekMaterialsPageUpdateService {
       pageId,
       MediaTargetType.WeekMaterialsPage,
     );
-    if (imageInput.type === 'upload' && imageInput.isLocalFile) {
+
+    if (imageInput.uploadType === 'upload' || imageInput.isLocalFile === true) {
+      media.platformType = undefined;
       const file = filesDict[imageInput.fieldKey];
       if (!file) {
         this.logger.error(`❌ Arquivo ausente para imagem "${imageInput.title}" (fieldKey: ${imageInput.fieldKey})`);
@@ -336,20 +367,29 @@ export class WeekMaterialsPageUpdateService {
       }
       this.logger.debug(`⬆️ Fazendo upload da imagem "${file.originalname}" para S3`);
       media.url = await this.s3.upload(file);
-      media.isLocalFile = true;
+      media.isLocalFile = imageInput.isLocalFile;
       media.originalName = file.originalname;
       media.size = file.size;
       this.logger.debug(`✅ Upload concluído. URL=${media.url}`);
     } else {
-      media.url = imageInput.url?.trim() || '';
-      media.isLocalFile = false;
+      media.title = imageInput.title || media.title;
+      media.description = imageInput.description || media.description;
+      media.uploadType = imageInput.uploadType || media.uploadType;
+      media.platformType = imageInput.platformType || media.platformType;
+      media.mediaType = imageInput.mediaType || media.mediaType;
+      media.url = imageInput.url?.trim() || media.url;
+      media.originalName = imageInput.originalName || media.originalName;
+      media.isLocalFile = imageInput.isLocalFile || media.isLocalFile;
+      media.size = imageInput.size || media.size;
       this.logger.debug(`🔗 Usando URL externa para imagem: "${media.url}"`);
     }
+
     this.logger.debug(`💾 Salvando imagem no banco`);
     const savedMedia = await this.mediaItemProcessor.saveMediaItem(media);
     this.logger.debug(`✅ Imagem salva com ID=${savedMedia.id}`);
     return savedMedia;
   }
+
 
   private async addAudioMedia(
     audioInput: any,
@@ -363,7 +403,9 @@ export class WeekMaterialsPageUpdateService {
       pageId,
       MediaTargetType.WeekMaterialsPage,
     );
-    if (audioInput.type === 'upload' && audioInput.isLocalFile) {
+
+    if (audioInput.uploadType === 'upload' || audioInput.isLocalFile === true) {
+      media.platformType = undefined;
       const file = filesDict[audioInput.fieldKey];
       if (!file) {
         this.logger.error(`❌ Arquivo ausente para áudio "${audioInput.title}" (fieldKey: ${audioInput.fieldKey})`);
@@ -376,29 +418,41 @@ export class WeekMaterialsPageUpdateService {
       media.size = file.size;
       this.logger.debug(`✅ Upload concluído. URL=${media.url}`);
     } else {
-      media.url = audioInput.url?.trim() || '';
+      media.title = audioInput.title || media.title;
+      media.description = audioInput.description || media.description;
+      media.uploadType = audioInput.uploadType || media.uploadType;
+      media.platformType = audioInput.platformType || media.platformType;
+      media.mediaType = audioInput.mediaType || media.mediaType;
+      media.url = audioInput.url?.trim() || media.url;
+      media.originalName = audioInput.originalName || media.originalName;
+      media.isLocalFile = audioInput.isLocalFile || media.isLocalFile;
+      media.size = audioInput.size || media.size;
       media.isLocalFile = false;
       this.logger.debug(`🔗 Usando URL externa para áudio: "${media.url}"`);
     }
+
     this.logger.debug(`💾 Salvando áudio no banco`);
     const savedMedia = await this.mediaItemProcessor.saveMediaItem(media);
     this.logger.debug(`✅ Áudio salvo com ID=${savedMedia.id}`);
     return savedMedia;
   }
 
+
   private async upsertVideoMedia(
-    videoInput: any,
+    videoInput: MediaItemDto,
     pageId: string,
     filesDict: Record<string, Express.Multer.File>,
     queryRunner: QueryRunner,
   ): Promise<MediaItemEntity> {
+
     this.logger.debug(`✏️ Construindo atualização de vídeo ID=${videoInput.id}`);
     const media = this.mediaItemProcessor.buildBaseMediaItem(
       { ...videoInput, mediaType: MediaType.VIDEO },
       pageId,
       MediaTargetType.WeekMaterialsPage,
     );
-    if (videoInput.type === 'upload' && videoInput.isLocalFile && videoInput.fieldKey) {
+
+    if (videoInput.uploadType === UploadType.UPLOAD && videoInput.isLocalFile && videoInput.fieldKey) {
       this.logger.debug(`🔍 Verificando vídeo existente ID=${videoInput.id}`);
       const existing = await queryRunner.manager.findOne(MediaItemEntity, {
         where: { id: videoInput.id },
@@ -414,13 +468,22 @@ export class WeekMaterialsPageUpdateService {
       }
       this.logger.debug(`⬆️ Fazendo upload do novo vídeo "${file.originalname}" para S3`);
       media.url = await this.s3.upload(file);
-      media.isLocalFile = true;
+      media.description = videoInput.description || media.description;
+
+      media.isLocalFile = videoInput.isLocalFile;
       media.originalName = file.originalname;
       media.size = file.size;
       this.logger.debug(`✅ Upload concluído. URL=${media.url}`);
     } else {
-      media.url = videoInput.url?.trim() || '';
-      media.isLocalFile = false;
+      media.title = videoInput.title || media.title;
+      media.description = videoInput.description || media.description;
+      media.uploadType = videoInput.uploadType || media.uploadType;
+      media.platformType = videoInput.platformType || media.platformType;
+      media.mediaType = videoInput.mediaType || media.mediaType;
+      media.url = videoInput.url?.trim() || media.url;
+      media.originalName = videoInput.originalName || media.originalName;
+      media.isLocalFile = videoInput.isLocalFile || media.isLocalFile;
+      media.size = videoInput.size || media.size;
       this.logger.debug(`🔗 Usando URL externa para vídeo: "${media.url}"`);
     }
     this.logger.debug(`💾 Atualizando vídeo no banco`);
@@ -430,7 +493,7 @@ export class WeekMaterialsPageUpdateService {
   }
 
   private async upsertDocumentMedia(
-    documentInput: any,
+    documentInput: MediaItemDto,
     pageId: string,
     filesDict: Record<string, Express.Multer.File>,
     queryRunner: QueryRunner,
@@ -441,7 +504,7 @@ export class WeekMaterialsPageUpdateService {
       pageId,
       MediaTargetType.WeekMaterialsPage,
     );
-    if (documentInput.type === 'upload' && documentInput.isLocalFile && documentInput.fieldKey) {
+    if (documentInput.uploadType === UploadType.UPLOAD && documentInput.isLocalFile && documentInput.fieldKey) {
       this.logger.debug(`🔍 Verificando documento existente ID=${documentInput.id}`);
       const existing = await queryRunner.manager.findOne(MediaItemEntity, {
         where: { id: documentInput.id },
@@ -462,8 +525,15 @@ export class WeekMaterialsPageUpdateService {
       media.size = file.size;
       this.logger.debug(`✅ Upload concluído. URL=${media.url}`);
     } else {
-      media.url = documentInput.url?.trim() || '';
-      media.isLocalFile = false;
+      media.title = documentInput.title || media.title;
+      media.description = documentInput.description || media.description;
+      media.uploadType = documentInput.uploadType || media.uploadType;
+      media.platformType = documentInput.platformType || media.platformType;
+      media.mediaType = documentInput.mediaType || media.mediaType;
+      media.url = documentInput.url?.trim() || media.url;
+      media.originalName = documentInput.originalName || media.originalName;
+      media.isLocalFile = documentInput.isLocalFile || media.isLocalFile;
+      media.size = documentInput.size || media.size;
       this.logger.debug(`🔗 Usando URL externa para documento: "${media.url}"`);
     }
     this.logger.debug(`💾 Atualizando documento no banco`);
@@ -473,7 +543,7 @@ export class WeekMaterialsPageUpdateService {
   }
 
   private async upsertImageMedia(
-    imageInput: any,
+    imageInput: MediaItemDto,
     pageId: string,
     filesDict: Record<string, Express.Multer.File>,
     queryRunner: QueryRunner,
@@ -484,7 +554,7 @@ export class WeekMaterialsPageUpdateService {
       pageId,
       MediaTargetType.WeekMaterialsPage,
     );
-    if (imageInput.type === 'upload' && imageInput.isLocalFile && imageInput.fieldKey) {
+    if (imageInput.uploadType === UploadType.UPLOAD && imageInput.isLocalFile && imageInput.fieldKey) {
       this.logger.debug(`🔍 Verificando imagem existente ID=${imageInput.id}`);
       const existing = await queryRunner.manager.findOne(MediaItemEntity, {
         where: { id: imageInput.id },
@@ -505,8 +575,15 @@ export class WeekMaterialsPageUpdateService {
       media.size = file.size;
       this.logger.debug(`✅ Upload concluído. URL=${media.url}`);
     } else {
-      media.url = imageInput.url?.trim() || '';
-      media.isLocalFile = false;
+      media.title = imageInput.title || media.title;
+      media.description = imageInput.description || media.description;
+      media.uploadType = imageInput.uploadType || media.uploadType;
+      media.platformType = imageInput.platformType || media.platformType;
+      media.mediaType = imageInput.mediaType || media.mediaType;
+      media.url = imageInput.url?.trim() || media.url;
+      media.originalName = imageInput.originalName || media.originalName;
+      media.isLocalFile = imageInput.isLocalFile || media.isLocalFile;
+      media.size = imageInput.size || media.size;
       this.logger.debug(`🔗 Usando URL externa para imagem: "${media.url}"`);
     }
     this.logger.debug(`💾 Atualizando imagem no banco`);
@@ -516,7 +593,7 @@ export class WeekMaterialsPageUpdateService {
   }
 
   private async upsertAudioMedia(
-    audioInput: any,
+    audioInput: MediaItemDto,
     pageId: string,
     filesDict: Record<string, Express.Multer.File>,
     queryRunner: QueryRunner,
@@ -527,7 +604,7 @@ export class WeekMaterialsPageUpdateService {
       pageId,
       MediaTargetType.WeekMaterialsPage,
     );
-    if (audioInput.type === 'upload' && audioInput.isLocalFile && audioInput.fieldKey) {
+    if (audioInput.uploadType === UploadType.UPLOAD && audioInput.isLocalFile && audioInput.fieldKey) {
       this.logger.debug(`🔍 Verificando áudio existente ID=${audioInput.id}`);
       const existing = await queryRunner.manager.findOne(MediaItemEntity, {
         where: { id: audioInput.id },
@@ -543,15 +620,23 @@ export class WeekMaterialsPageUpdateService {
       }
       this.logger.debug(`⬆️ Fazendo upload do novo áudio "${file.originalname}" para S3`);
       media.url = await this.s3.upload(file);
-      media.isLocalFile = true;
+      media.isLocalFile = audioInput.isLocalFile;
       media.originalName = file.originalname;
       media.size = file.size;
       this.logger.debug(`✅ Upload concluído. URL=${media.url}`);
     } else {
-      media.url = audioInput.url?.trim() || '';
-      media.isLocalFile = false;
+      media.title = audioInput.title || media.title;
+      media.description = audioInput.description || media.description;
+      media.uploadType = audioInput.uploadType || media.uploadType;
+      media.platformType = audioInput.platformType || media.platformType;
+      media.mediaType = audioInput.mediaType || media.mediaType;
+      media.url = audioInput.url?.trim() || media.url;
+      media.originalName = audioInput.originalName || media.originalName;
+      media.isLocalFile = audioInput.isLocalFile || media.isLocalFile;
+      media.size = audioInput.size || media.size;
       this.logger.debug(`🔗 Usando URL externa para áudio: "${media.url}"`);
     }
+
     this.logger.debug(`💾 Atualizando áudio no banco`);
     const updatedMedia = await this.mediaItemProcessor.upsertMediaItem(audioInput.id, media);
     this.logger.debug(`✅ Áudio atualizado com ID=${updatedMedia.id}`);

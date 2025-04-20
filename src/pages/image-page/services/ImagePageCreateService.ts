@@ -8,7 +8,7 @@ import { AwsS3Service } from 'src/aws/aws-s3.service';
 import { RouteService } from 'src/route/route.service';
 import { RouteEntity, RouteType } from 'src/route/route-page.entity';
 import { MediaItemProcessor } from 'src/share/media/media-item-processor';
-import { MediaItemEntity } from 'src/share/media/media-item/media-item.entity';
+import { MediaItemEntity, UploadType } from 'src/share/media/media-item/media-item.entity';
 import { MediaTargetType } from 'src/share/media/media-target-type.enum';
 import { ImagePageRepository } from '../repository/image-page.repository';
 import { CreateImagePageDto } from '../dto/create-image.dto';
@@ -98,7 +98,7 @@ export class ImagePageCreateService {
 
                 this.logger.debug(`🖼️ Preparando ${sectionInput.mediaItems.length} itens de mídia para a seção`);
                 const mediaItemsPrepared = sectionInput.mediaItems.map((item) => {
-                    if (item.type === 'upload' && item.isLocalFile) {
+                    if (item.uploadType === UploadType.UPLOAD && item.isLocalFile) {
                         if (!item.originalName) {
                             this.logger.error('❌ Campo originalName ausente no item de upload');
                             throw new Error('Campo originalName ausente no item de upload.');

@@ -11,8 +11,8 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { WeekDay } from '../entities/day.entity';
+import { MediaItemDto } from 'src/share/share-dto/media-item-dto';
 
-// DTO para os dias da meditação
 class UpdateDayDto {
   @IsOptional()
   @IsEnum(WeekDay, {
@@ -29,8 +29,11 @@ class UpdateDayDto {
   topic?: string;
 }
 
-// DTO principal para atualização de meditação
 export class UpdateMeditationDto {
+  @IsOptional()
+  @IsString({ message: 'id deve ser uma string' })
+  id?: string;
+
   @IsOptional()
   @IsString({ message: 'url deve ser uma string' })
   url?: string;
@@ -46,6 +49,12 @@ export class UpdateMeditationDto {
   @IsOptional()
   @IsDateString({}, { message: 'endDate deve estar em formato ISO válido (YYYY-MM-DD)' })
   endDate?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => MediaItemDto)
+  media?: MediaItemDto;
+  
 
   @IsOptional()
   @IsBoolean({ message: 'isLocalFile deve ser um valor booleano (true ou false)' })

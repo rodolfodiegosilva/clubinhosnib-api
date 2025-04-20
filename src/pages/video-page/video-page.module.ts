@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { VideosPage } from './entities/video-page.entity';
 import { VideosPageController } from './video-page.controller';
-import { VideosPageService } from './video-page.service';
 import { VideosPageRepository } from './video-page.repository';
 import { RouteModule } from 'src/route/route.module';
 import { MediaModule } from 'src/share/media/media.module';
@@ -16,13 +15,11 @@ import { UpdateVideosPageService } from './services/videos-page.update.service';
   imports: [
     TypeOrmModule.forFeature([VideosPage]),
     RouteModule,
-    MediaModule  
+    MediaModule
   ],
   controllers: [VideosPageController],
   providers: [
-    VideosPageService,CreateVideosPageService,DeleteVideosPageService,GetVideosPageService,UpdateVideosPageService,
-    VideosPageRepository,
+    CreateVideosPageService, DeleteVideosPageService, GetVideosPageService, UpdateVideosPageService, VideosPageRepository,
   ],
-  exports: [VideosPageService],
 })
-export class VideosPageModule {}
+export class VideosPageModule { }

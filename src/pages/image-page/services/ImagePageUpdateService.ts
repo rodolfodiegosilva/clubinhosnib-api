@@ -11,11 +11,12 @@ import { RouteEntity, RouteType } from 'src/route/route-page.entity';
 import { ImagePageRepository } from '../repository/image-page.repository';
 import { ImageSectionRepository } from '../repository/image-section.repository';
 import { MediaItemProcessor } from 'src/share/media/media-item-processor';
-import { UpdateImagePageDto, UpdateMediaItemDto, UpdateSectionDto } from '../dto/update-image.dto';
+import { UpdateImagePageDto, UpdateSectionDto } from '../dto/update-image.dto';
 import { ImagePageResponseDto } from '../dto/image-page-response.dto';
 import { ImageSectionEntity } from '../entity/Image-section.entity';
 import { MediaItemEntity } from 'src/share/media/media-item/media-item.entity';
 import { ImagePageEntity } from '../entity/Image-page.entity';
+import { MediaItemDto } from 'src/share/share-dto/media-item-dto';
 
 @Injectable()
 export class ImagePageUpdateService {
@@ -262,7 +263,7 @@ export class ImagePageUpdateService {
     }
 
     async addMedia(
-        mediaInput: UpdateMediaItemDto,
+        mediaInput: MediaItemDto,
         targetId: string,
         filesDict: Record<string, Express.Multer.File>,
         queryRunner: QueryRunner
@@ -272,11 +273,17 @@ export class ImagePageUpdateService {
         const media = this.mediaItemProcessor.buildBaseMediaItem(mediaInput, targetId, 'ImagesPage');
         if (mediaInput.isLocalFile) {
             this.logger.debug(`🔍 Verificando arquivo para upload: fieldKey=${mediaInput.fieldKey || mediaInput.url}`);
-            const file = filesDict[mediaInput.fieldKey || mediaInput.url];
-            if (!file) {
-                this.logger.error(`❌ Arquivo ausente para upload: ${mediaInput.fieldKey || mediaInput.url}`);
-                throw new Error(`Arquivo ausente para upload: ${mediaInput.fieldKey || mediaInput.url}`);
+            const key = mediaInput.fieldKey ?? mediaInput.url;
+            if (!key) {
+                this.logger.error(`❌ Arquivo ausente para upload: nenhum fieldKey ou url fornecido`);
+                throw new Error(`Arquivo ausente para upload: nenhum fieldKey ou url fornecido`);
             }
+            const file = filesDict[key];
+            if (!file) {
+                this.logger.error(`❌ Arquivo não encontrado para chave: ${key}`);
+                throw new Error(`Arquivo não encontrado para upload: ${key}`);
+            }
+
             this.logger.debug(`📤 Iniciando upload para S3: ${file.originalname}`);
             media.url = await this.awsS3Service.upload(file);
             media.originalName = file.originalname;
@@ -309,7 +316,7 @@ export class ImagePageUpdateService {
     }
 
     async upsertMedia(
-        mediaInput: UpdateMediaItemDto,
+        mediaInput: MediaItemDto,
         targetId: string,
         filesDict: Record<string, Express.Multer.File>,
         queryRunner: QueryRunner
@@ -319,11 +326,17 @@ export class ImagePageUpdateService {
         const media = this.mediaItemProcessor.buildBaseMediaItem(mediaInput, targetId, 'ImagesPage');
         if (mediaInput.isLocalFile && !mediaInput.id) {
             this.logger.debug(`🔍 Verificando arquivo para upload: fieldKey=${mediaInput.fieldKey || mediaInput.url}`);
-            const file = filesDict[mediaInput.fieldKey || mediaInput.url];
-            if (!file) {
-                this.logger.error(`❌ Arquivo ausente para upload: ${mediaInput.fieldKey || mediaInput.url}`);
-                throw new Error(`Arquivo ausente para upload: ${mediaInput.fieldKey || mediaInput.url}`);
+            const key = mediaInput.fieldKey ?? mediaInput.url;
+            if (!key) {
+                this.logger.error(`❌ Arquivo ausente para upload: nenhum fieldKey ou url fornecido`);
+                throw new Error(`Arquivo ausente para upload: nenhum fieldKey ou url fornecido`);
             }
+            const file = filesDict[key];
+            if (!file) {
+                this.logger.error(`❌ Arquivo não encontrado para chave: ${key}`);
+                throw new Error(`Arquivo não encontrado para upload: ${key}`);
+            }
+
             this.logger.debug(`📤 Iniciando upload para S3: ${file.originalname}`);
             media.url = await this.awsS3Service.upload(file);
             media.originalName = file.originalname;
@@ -362,7 +375,7 @@ export class ImagePageUpdateService {
     }
 
     async processSectionMedia(
-        mediaItems: UpdateMediaItemDto[],
+        mediaItems: MediaItemDto[],
         sectionId: string,
         oldMedia: MediaItemEntity[],
         filesDict: Record<string, Express.Multer.File>,
