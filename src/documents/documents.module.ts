@@ -10,23 +10,29 @@ import { GetDocumentService } from './services/get-document.service';
 import { DeleteDocumentService } from './services/delete-document.service';
 import { DocumentRepository } from './document.repository';
 import { DataSource } from 'typeorm';
+import { RouteService } from 'src/route/route.service';
+import { RouteRepository } from 'src/route/route-page.repository';
+import { MeditationModule } from 'src/meditation/meditation.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([DocumentEntity]),
     MediaModule,
+    MeditationModule
   ],
   controllers: [DocumentsController],
   providers: [
     CreateDocumentService,
     UpdateDocumentService,
     GetDocumentService,
+    RouteService,
     DeleteDocumentService,
-        {
-          provide: DocumentRepository,
-          useFactory: (dataSource: DataSource) => new DocumentRepository(dataSource),
-          inject: [DataSource],
-        },
+    {
+      provide: DocumentRepository,
+      useFactory: (dataSource: DataSource) => new DocumentRepository(dataSource),
+      inject: [DataSource],
+    },
+    RouteRepository
   ],
   exports: [
     CreateDocumentService,
@@ -35,4 +41,4 @@ import { DataSource } from 'typeorm';
     DeleteDocumentService,
   ],
 })
-export class DocumentModule {}
+export class DocumentModule { }

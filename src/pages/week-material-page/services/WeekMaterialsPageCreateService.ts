@@ -56,8 +56,9 @@ export class WeekMaterialsPageCreateService {
         entityId: savedPage.id,
         idToFetch: savedPage.id,
         entityType: 'WeekMaterialsPage',
-        image: 'https://bucket-clubinho-galeria.s3.us-east-2.amazonaws.com/uploads/img_card.jpg',
-        public: false
+        image: 'https://clubinho-nib.s3.us-east-1.amazonaws.com/production/cards/card_materiais.png',
+        public: true,
+        current: false
       });
       this.logger.debug(`🛤️ Rota criada. ID=${route.id}`);
 

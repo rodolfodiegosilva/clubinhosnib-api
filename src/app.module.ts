@@ -14,6 +14,9 @@ import { EventModule } from './pages/event-page/event.module';
 import { CommentModule } from './comment/comment.module';
 import { DocumentModule } from './documents/documents.module';
 import { IdeasPageModule } from './pages/ideas-page/ideas-page.module';
+import { InformativeModule } from './informative/informative.module';
+import { ImageSectionModule } from './pages/image-section/image-section.module';
+import { SiteFeedbackModule } from './feedback/site-feedback.module';
 
 @Module({
   imports: [
@@ -32,6 +35,9 @@ import { IdeasPageModule } from './pages/ideas-page/ideas-page.module';
     CommentModule,
     DocumentModule,
     IdeasPageModule,
+    InformativeModule,
+    ImageSectionModule,
+    SiteFeedbackModule
   ],
 })
-export class AppModule {}
+export class AppModule { }
