@@ -109,15 +109,14 @@ export class IdeasPageCreateService {
       runner.manager,
       {
         title: dto.title,
-        subtitle: dto.subtitle,
+        subtitle: dto.subtitle || '',
         description: dto.description,
         path,
         type: RouteType.PAGE,
         entityId: page.id,
         idToFetch: page.id,
-        entityType: 'IdeasPage',
-        image:
-          'https://bucket-clubinho-galeria.s3.us-east-2.amazonaws.com/uploads/img_card.jpg',
+        entityType: MediaTargetType.IdeasPage,
+        image: 'https://clubinho-nib.s3.us-east-1.amazonaws.com/production/cards/card_ideias.png',
         public: false,
       },
     );

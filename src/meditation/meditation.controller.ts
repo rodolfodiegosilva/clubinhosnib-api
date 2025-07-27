@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   BadRequestException,
   Logger,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
@@ -26,6 +27,9 @@ import { UpdateMeditationDto } from './dto/update-meditation.dto';
 import { MeditationEntity } from './entities/meditation.entity';
 import { WeekMeditationResponseDto } from './dto/meditation-response-dto';
 
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RoleGuard } from 'src/auth/guards/role-guard';
+
 @Controller('meditations')
 export class MeditationController {
   private readonly logger = new Logger(MeditationController.name);
@@ -35,8 +39,9 @@ export class MeditationController {
     private readonly updateService: UpdateMeditationService,
     private readonly deleteService: DeleteMeditationService,
     private readonly getService: GetMeditationService,
-  ) {}
+  ) { }
 
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   async create(
@@ -64,23 +69,27 @@ export class MeditationController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   async findAll(): Promise<WeekMeditationResponseDto[]> {
     this.logger.log('📦 [GET /meditations] Listando todas as meditações');
     return this.getService.findAll();
   }
 
   @Get('/this-week')
+  @UseGuards(JwtAuthGuard)
   async getThisWeek(): Promise<WeekMeditationResponseDto> {
     this.logger.log('📆 [GET /meditations/this-week] Buscando meditação da semana');
     return this.getService.getThisWeekMeditation();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<MeditationEntity> {
+  @UseGuards(JwtAuthGuard)
+  async findOne(@Param('id') id: string): Promise<WeekMeditationResponseDto> {
     this.logger.log(`🔍 [GET /meditations/${id}] Buscando meditação`);
     return this.getService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @Patch(':id')
   @UseInterceptors(FileInterceptor('file'))
   async update(
@@ -113,6 +122,7 @@ export class MeditationController {
     return result;
   }
 
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @Delete(':id')
   @HttpCode(204)
   async remove(@Param('id') id: string): Promise<void> {

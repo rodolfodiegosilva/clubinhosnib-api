@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   Logger,
+  UseGuards,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
@@ -24,6 +25,9 @@ import { UpdateDocumentService } from './services/update-document.service';
 import { GetDocumentService } from './services/get-document.service';
 import { DeleteDocumentService } from './services/delete-document.service';
 
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RoleGuard } from 'src/auth/guards/role-guard';
+
 @Controller('documents')
 export class DocumentsController {
   private readonly logger = new Logger(DocumentsController.name);
@@ -35,6 +39,7 @@ export class DocumentsController {
     private readonly deleteService: DeleteDocumentService,
   ) {}
 
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @Post()
   @UseInterceptors(AnyFilesInterceptor())
   async create(
@@ -44,6 +49,7 @@ export class DocumentsController {
     this.logger.log('📥 [POST /documents] Criando novo documento');
 
     if (!documentDataRaw) {
+      this.logger.warn('❗ Campo "documentData" não enviado');
       throw new BadRequestException('Campo "documentData" não enviado.');
     }
 
@@ -52,7 +58,8 @@ export class DocumentsController {
       const parsed = JSON.parse(documentDataRaw);
       dto = plainToInstance(CreateDocumentDto, parsed);
       await validateOrReject(dto);
-    } catch {
+    } catch (error) {
+      this.logger.error('❌ Erro ao processar dados do documento', error);
       throw new BadRequestException('Erro ao processar dados do documento.');
     }
 
@@ -64,23 +71,24 @@ export class DocumentsController {
       this.logger.warn(`⚠️ Nenhum arquivo encontrado com fieldname: ${dto.media.fileField}`);
     }
 
-    const result = await this.createService.execute(dto, file);
+    const result = await this.createService.createDocument(dto, file);
     this.logger.log('✅ Documento criado com sucesso');
     return result;
   }
 
   @Get()
-  findAll() {
+  async findAll() {
     this.logger.log('📄 [GET /documents] Listando todos os documentos');
     return this.getService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     this.logger.log(`🔍 [GET /documents/${id}] Buscando documento`);
     return this.getService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @Patch(':id')
   @UseInterceptors(AnyFilesInterceptor())
   async update(
@@ -91,6 +99,7 @@ export class DocumentsController {
     this.logger.log(`✏️ [PATCH /documents/${id}] Atualizando documento`);
 
     if (!documentDataRaw) {
+      this.logger.warn('❗ Campo "documentData" não enviado');
       throw new BadRequestException('Campo "documentData" não enviado.');
     }
 
@@ -100,7 +109,8 @@ export class DocumentsController {
       dto = plainToInstance(UpdateDocumentDto, parsed);
       dto.id = id;
       await validateOrReject(dto);
-    } catch {
+    } catch (error) {
+      this.logger.error('❌ Erro ao processar dados do documento', error);
       throw new BadRequestException('Erro ao processar dados do documento.');
     }
 
@@ -117,9 +127,12 @@ export class DocumentsController {
     return result;
   }
 
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: string) {
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
     this.logger.log(`🗑️ [DELETE /documents/${id}] Removendo documento`);
-    return this.deleteService.execute(id);
+    const result = await this.deleteService.execute(id);
+    this.logger.log(`✅ Documento removido com sucesso: ID=${id}`);
+    return result;
   }
 }
